@@ -11,9 +11,11 @@ export default registerAs('app', () => ({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
+    synchronize: process.env.NODE_ENV === 'development',
     logging: process.env.NODE_ENV === 'development',
-    
+    ssl: {
+      rejectUnauthorized: false,
+    },
   },
   kafka: {
     clientId: 'aether-backend',
@@ -23,6 +25,14 @@ export default registerAs('app', () => ({
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379',
     ttl: parseInt(process.env.REDIS_CACHE_TTL, 10) || 3600,
+    retryStrategy: (times: number) => Math.min(times * 50, 2000),
+    reconnectOnError: (err) => {
+      const targetError = 'READONLY';
+      if (err.message.includes(targetError)) {
+        return true;
+      }
+      return false;
+    },
   },
   weatherApi: {
     baseUrl: process.env.WEATHER_API_BASE_URL,

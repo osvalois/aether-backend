@@ -5,8 +5,9 @@ import { WeatherService } from './services/weather.service';
 import { WeatherApiService } from './services/weather-api.service';
 import { WeatherDataRepository } from './repositories/weather-data.repository';
 import { WeatherData } from './entities/weather-data.entity';
-import { RedisModule } from '@app/redis/redis.module';
+
 import { FlightService } from '../flight/services/flight.service';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [

@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
 import { Logger } from '../../utils/logger';
-import { WeatherService } from '@app/modules/weather/services/weather.service';
+import { WeatherService } from 'src/modules/weather/services/weather.service';
 
 @Injectable()
 export class WeatherDataConsumer implements OnModuleInit {

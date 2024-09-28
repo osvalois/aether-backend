@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { WeatherApiService } from './weather-api.service';
 import { WeatherDataRepository } from '../repositories/weather-data.repository';
 import { WeatherData } from '../entities/weather-data.entity';
-import { RedisService } from '@app/redis/redis.service';
-import { HttpService } from '@nestjs/axios';
-import { FlightService } from '@app/modules/flight/services/flight.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class WeatherService {
@@ -14,8 +12,6 @@ export class WeatherService {
     private weatherDataRepository: WeatherDataRepository,
     private weatherApiService: WeatherApiService,
     private redisService: RedisService,
-    private httpService: HttpService,
-    private flightService: FlightService,
   ) {}
 
   async getWeatherForAirport(iataCode: string): Promise<WeatherData> {
