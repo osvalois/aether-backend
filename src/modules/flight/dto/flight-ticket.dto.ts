@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, Matches, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, Length, Matches, IsNumber, Min, Max, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AirportDto {
@@ -25,7 +25,7 @@ export class AirportDto {
   longitude: number;
 }
 
-export class FlightTicketDto {
+export class CreateFlightTicketDto {
   @IsString()
   @IsNotEmpty()
   @Length(3, 3)
@@ -51,4 +51,10 @@ export class FlightTicketDto {
 
   @Type(() => AirportDto)
   destinationAirport: AirportDto;
+}
+
+export class FlightTicketDto extends CreateFlightTicketDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
 }
