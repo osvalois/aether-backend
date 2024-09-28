@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReportService } from './services/report.service';
 import { ReportController } from './controllers/report.controller';
-import { FlightWeatherReportRepository } from './repositories/flight-weather-report.repository';
 import { FlightModule } from '../flight/flight.module';
 import { WeatherModule } from '../weather/weather.module';
+import { FlightWeatherReport } from './entities/flight-weather-report.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([FlightWeatherReportRepository]),
+    TypeOrmModule.forFeature([FlightWeatherReport]),
     FlightModule,
     WeatherModule,
   ],

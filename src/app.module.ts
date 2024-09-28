@@ -5,6 +5,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from './redis/redis.module';
 import configuration from './config/configuration';
 import databaseConfig from './config/database.config';
+import { FlightModule } from './modules/flight/flight.module';
+import { WeatherModule } from './modules/weather/weather.module';
+import { ReportModule } from './modules/report/report.module';
 
 @Module({
   imports: [
@@ -18,8 +21,10 @@ import databaseConfig from './config/database.config';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
-    RedisModule,
-    AppModule
+    FlightModule,
+    WeatherModule,
+    ReportModule,
+    RedisModule
   ],
 })
 export class AppModule {}

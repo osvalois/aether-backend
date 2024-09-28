@@ -8,19 +8,20 @@ import { WeatherData } from './entities/weather-data.entity';
 
 import { FlightService } from '../flight/services/flight.service';
 import { RedisModule } from 'src/redis/redis.module';
+import { WeatherController } from './controllers/weather.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([WeatherData]),
     RedisModule,
     HttpModule,
-    FlightService
   ],
   providers: [
     WeatherService,
     WeatherApiService,
     WeatherDataRepository,
   ],
+  controllers: [WeatherController],
   exports: [WeatherService],
 })
 export class WeatherModule {}
