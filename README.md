@@ -12,8 +12,6 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/aether/backend)](https://hub.docker.com/r/aether/backend)
 [![npm version](https://badge.fury.io/js/aether-backend.svg)](https://badge.fury.io/js/aether-backend)
 
-*Empowering the aviation industry with real-time, high-precision weather intelligence.*
-
 [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Support](#support)
 
 </div>
@@ -53,15 +51,15 @@
 
 ## Introduction
 
-Aether is a state-of-the-art, high-performance backend system engineered to deliver real-time weather intelligence for the aviation industry. Designed to process over 3,000 daily flight tickets, Aether provides precise, up-to-the-minute weather conditions for both origin and destination airports, empowering airlines and travelers with critical meteorological insights.
+Aether is an backend system designed to provide real-time weather information for the aviation industry. Capable of processing over 3,000+ flight tickets daily, Aether offers timely weather updates for origin and destination airports, helping airlines and travelers access important meteorological data.
 
 ### Vision
 
-To revolutionize aviation safety and efficiency by providing the most accurate, timely, and actionable weather intelligence globally.
+To enhance aviation safety and efficiency by providing accurate and timely weather information around the world.
 
 ### Mission
 
-Deliver a robust, scalable, and reliable platform that processes vast amounts of flight and weather data, offering unparalleled insights to our aviation partners.
+To develop a reliable and scalable platform that processes significant amounts of flight and weather data, offering valuable insights to our aviation partners.
 
 ## Key Features
 
