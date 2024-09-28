@@ -14,17 +14,20 @@ export class ReportController {
   @ApiOperation({ summary: 'Generate a weather report for a flight' })
   @ApiResponse({ status: 201, description: 'The report has been successfully generated.', type: FlightWeatherReportDto })
   async generateReport(@Param('flightId') flightId: string): Promise<FlightWeatherReportDto> {
-    const report = await this.reportService.generateReport(flightId);
-    return new FlightWeatherReportDto(report);
+    return await this.reportService.generateReport(flightId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a weather report by id' })
   @ApiResponse({ status: 200, description: 'Return the weather report.', type: FlightWeatherReportDto })
   async getReport(@Param('id') id: string): Promise<FlightWeatherReportDto> {
-    const report = await this.reportService.generateReport(id);
-    return new FlightWeatherReportDto(report);
+    return await this.reportService.getReportById(id);
   }
 
-  // Add more endpoints as needed
+  @Get('latest/:flightId')
+  @ApiOperation({ summary: 'Get the latest weather report for a flight' })
+  @ApiResponse({ status: 200, description: 'Return the latest weather report for the flight.', type: FlightWeatherReportDto })
+  async getLatestReport(@Param('flightId') flightId: string): Promise<FlightWeatherReportDto> {
+    return await this.reportService.getLatestReportForFlight(flightId);
+  }
 }

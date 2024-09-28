@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FlightWeatherReportRepository } from '../repositories/flight-weather-report.repository';
+import { Repository } from 'typeorm';
 import { FlightService } from '../../flight/services/flight.service';
 import { WeatherService } from '../../weather/services/weather.service';
 import { FlightWeatherReport } from '../entities/flight-weather-report.entity';
@@ -9,8 +9,8 @@ import { FlightWeatherReportDto } from '../dto/flight-weather-report.dto';
 @Injectable()
 export class ReportService {
   constructor(
-    @InjectRepository(FlightWeatherReportRepository)
-    private flightWeatherReportRepository: FlightWeatherReportRepository,
+    @InjectRepository(FlightWeatherReport)
+    private flightWeatherReportRepository: Repository<FlightWeatherReport>,
     private flightService: FlightService,
     private weatherService: WeatherService,
   ) {}
@@ -38,7 +38,10 @@ export class ReportService {
   }
 
   async getReportById(id: string): Promise<FlightWeatherReportDto> {
-    const report = await this.flightWeatherReportRepository.findOne({ where: { id }, relations: ['flight', 'originWeather', 'destinationWeather'] }); // Ajuste aquí
+    const report = await this.flightWeatherReportRepository.findOne({ 
+      where: { id }, 
+      relations: ['flight', 'originWeather', 'destinationWeather'] 
+    });
 
     if (!report) {
       throw new NotFoundException(`Report with ID "${id}" not found`);
@@ -48,7 +51,11 @@ export class ReportService {
   }
 
   async getLatestReportForFlight(flightId: string): Promise<FlightWeatherReportDto> {
-    const report = await this.flightWeatherReportRepository.findLatestByFlightId(flightId);
+    const report = await this.flightWeatherReportRepository.findOne({
+      where: { flight: { id: flightId } },
+      order: { createdAt: 'DESC' },
+      relations: ['flight', 'originWeather', 'destinationWeather']
+    });
 
     if (!report) {
       throw new NotFoundException(`No report found for flight with ID "${flightId}"`);
@@ -58,12 +65,12 @@ export class ReportService {
   }
 
   private mapToDto(report: FlightWeatherReport): FlightWeatherReportDto {
-    return {
+    return new FlightWeatherReportDto({
       id: report.id,
       flightId: report.flight.id,
       createdAt: report.createdAt,
       originWeather: report.originWeather,
       destinationWeather: report.destinationWeather,
-    };
+    });
   }
 }

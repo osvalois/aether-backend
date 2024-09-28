@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { FlightModule } from './modules/flight/flight.module';
 import { WeatherModule } from './modules/weather/weather.module';
 import { ReportModule } from './modules/report/report.module';
 import { RedisModule } from './redis/redis.module';
@@ -22,7 +21,6 @@ import databaseConfig from './config/database.config';
     }),
     ScheduleModule.forRoot(),
     RedisModule,
-    FlightModule,
     WeatherModule,
     ReportModule,
   ],

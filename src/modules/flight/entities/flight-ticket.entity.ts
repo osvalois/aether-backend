@@ -1,35 +1,34 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Airport } from './airport.entity';
 
 @Entity('flight_tickets')
 export class FlightTicket {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ length: 3 })
-  origin: string;
+  origin!: string;
 
   @Column({ length: 3 })
-  destination: string;
+  destination!: string;
 
   @Column({ length: 2 })
-  airline: string;
+  airline!: string;
 
   @Column({ name: 'flight_num', length: 10 })
-  flightNum: string;
+  flightNum!: string;
 
-  @ManyToOne(() => Airport)
-  @JoinColumn({ name: 'origin', referencedColumnName: 'iataCode' })
-  originAirport: Airport;
+  @ManyToOne(() => Airport, { eager: true })
+  @JoinColumn({ name: 'origin_airport', referencedColumnName: 'iataCode' })
+  originAirport!: Airport;
 
-  @ManyToOne(() => Airport)
-  @JoinColumn({ name: 'destination', referencedColumnName: 'iataCode' })
-  destinationAirport: Airport;
+  @ManyToOne(() => Airport, { eager: true })
+  @JoinColumn({ name: 'destination_airport', referencedColumnName: 'iataCode' })
+  destinationAirport!: Airport;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt!: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt!: Date;
 }
-

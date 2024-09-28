@@ -75,18 +75,108 @@ importers:
       '@nestjs/testing':
         specifier: ^8.0.0
         version: 8.4.7(@nestjs/common@8.4.7(class-transformer@0.5.1)(class-validator@0.13.2)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@8.4.7(@nestjs/common@8.4.7(class-transformer@0.5.1)(class-validator@0.13.2)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@8.4.7)(@nestjs/platform-express@8.4.7)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/microservices@8.4.7(@nestjs/common@8.4.7(class-transformer@0.5.1)(class-validator@0.13.2)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@8.4.7)(kafkajs@2.2.4)(redis@4.7.0)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/platform-express@8.4.7(@nestjs/common@8.4.7(class-transformer@0.5.1)(class-validator@0.13.2)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@8.4.7))
+      '@types/babel__core':
+        specifier: ^7.20.5
+        version: 7.20.5
+      '@types/babel__generator':
+        specifier: ^7.6.8
+        version: 7.6.8
+      '@types/babel__template':
+        specifier: ^7.4.4
+        version: 7.4.4
+      '@types/babel__traverse':
+        specifier: ^7.20.6
+        version: 7.20.6
+      '@types/body-parser':
+        specifier: ^1.19.5
+        version: 1.19.5
+      '@types/connect':
+        specifier: ^3.4.38
+        version: 3.4.38
+      '@types/cookiejar':
+        specifier: ^2.1.5
+        version: 2.1.5
+      '@types/eslint':
+        specifier: ^9.6.1
+        version: 9.6.1
+      '@types/eslint-scope':
+        specifier: ^3.7.7
+        version: 3.7.7
+      '@types/estree':
+        specifier: ^1.0.6
+        version: 1.0.6
       '@types/express':
         specifier: ^4.17.13
         version: 4.17.21
+      '@types/express-serve-static-core':
+        specifier: ^5.0.0
+        version: 5.0.0
+      '@types/graceful-fs':
+        specifier: ^4.1.9
+        version: 4.1.9
+      '@types/http-errors':
+        specifier: ^2.0.4
+        version: 2.0.4
+      '@types/istanbul-lib-coverage':
+        specifier: ^2.0.6
+        version: 2.0.6
+      '@types/istanbul-lib-report':
+        specifier: ^3.0.3
+        version: 3.0.3
+      '@types/istanbul-reports':
+        specifier: ^3.0.4
+        version: 3.0.4
       '@types/jest':
         specifier: 27.5.0
         version: 27.5.0
+      '@types/json-schema':
+        specifier: ^7.0.15
+        version: 7.0.15
+      '@types/json5':
+        specifier: ^0.0.30
+        version: 0.0.30
+      '@types/methods':
+        specifier: ^1.1.4
+        version: 1.1.4
+      '@types/mime':
+        specifier: ^3.0.4
+        version: 3.0.4
       '@types/node':
         specifier: ^16.0.0
         version: 16.18.112
+      '@types/parse-json':
+        specifier: ^4.0.2
+        version: 4.0.2
+      '@types/prettier':
+        specifier: ^2.7.3
+        version: 2.7.3
+      '@types/range-parser':
+        specifier: ^1.2.7
+        version: 1.2.7
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.5.8
+      '@types/send':
+        specifier: ^0.17.4
+        version: 0.17.4
+      '@types/serve-static':
+        specifier: ^1.15.7
+        version: 1.15.7
+      '@types/stack-utils':
+        specifier: ^2.0.3
+        version: 2.0.3
+      '@types/superagent':
+        specifier: ^8.1.9
+        version: 8.1.9
       '@types/supertest':
         specifier: ^2.0.11
         version: 2.0.16
+      '@types/yargs':
+        specifier: ^17.0.33
+        version: 17.0.33
+      '@types/yargs-parser':
+        specifier: ^21.0.3
+        version: 21.0.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.0.0
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.9.5))(eslint@8.57.1)(typescript@4.9.5)
@@ -734,8 +824,14 @@ packages:
   '@types/estree@0.0.51':
     resolution: {integrity: sha512-CuPgU6f3eT/XgKKPqKd/gLZV1Xmvf1a2R5POBOGQa6uv82xpls89HU5zKeVoyR8XzHd1RGNOlQlvUe3CFkjWNQ==}
 
+  '@types/estree@1.0.6':
+    resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
+
   '@types/express-serve-static-core@4.19.6':
     resolution: {integrity: sha512-N4LZ2xG7DatVqhCZzOGb1Yi5lMbXSZcmdLDe9EzSndPV2HpWYWzRbaerl2n27irrm94EPpprqa8KpskPT085+A==}
+
+  '@types/express-serve-static-core@5.0.0':
+    resolution: {integrity: sha512-AbXMTZGt40T+KON9/Fdxx0B2WK5hsgxcfXJLr5bFpZ7b4JCex2WyQPTEKdXqfHiY5nKKBScZ7yCoO6Pvgxfvnw==}
 
   '@types/express@4.17.21':
     resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
@@ -764,11 +860,17 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
+  '@types/json5@0.0.30':
+    resolution: {integrity: sha512-sqm9g7mHlPY/43fcSNrCYfOeX9zkTTK+euO5E6+CVijSMm5tTjkVdwdqRkY3ljjIAf8679vps5jKUoJBCLsMDA==}
+
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
+
+  '@types/mime@3.0.4':
+    resolution: {integrity: sha512-iJt33IQnVRkqeqC7PzBHPTC6fDlRNRW8vjrgqtScAhrmMwe8c4Eo7+fUGTa+XdWrpEgpyKWMYmi2dIwMAYRzPw==}
 
   '@types/node@16.18.112':
     resolution: {integrity: sha512-EKrbKUGJROm17+dY/gMi31aJlGLJ75e1IkTojt9n6u+hnaTBDs+M1bIdOawpk2m6YUAXq/R2W0SxCng1tndHCg==}
@@ -4014,16 +4116,25 @@ snapshots:
   '@types/eslint-scope@3.7.7':
     dependencies:
       '@types/eslint': 9.6.1
-      '@types/estree': 0.0.51
+      '@types/estree': 1.0.6
 
   '@types/eslint@9.6.1':
     dependencies:
-      '@types/estree': 0.0.51
+      '@types/estree': 1.0.6
       '@types/json-schema': 7.0.15
 
   '@types/estree@0.0.51': {}
 
+  '@types/estree@1.0.6': {}
+
   '@types/express-serve-static-core@4.19.6':
+    dependencies:
+      '@types/node': 16.18.112
+      '@types/qs': 6.9.16
+      '@types/range-parser': 1.2.7
+      '@types/send': 0.17.4
+
+  '@types/express-serve-static-core@5.0.0':
     dependencies:
       '@types/node': 16.18.112
       '@types/qs': 6.9.16
@@ -4062,9 +4173,13 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
+  '@types/json5@0.0.30': {}
+
   '@types/methods@1.1.4': {}
 
   '@types/mime@1.3.5': {}
+
+  '@types/mime@3.0.4': {}
 
   '@types/node@16.18.112': {}
 

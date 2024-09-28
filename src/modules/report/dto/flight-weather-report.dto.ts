@@ -22,4 +22,9 @@ export class FlightWeatherReportDto {
   @ValidateNested()
   @Type(() => WeatherDataDto)
   destinationWeather: WeatherDataDto;
+
+  constructor(partial: Partial<FlightWeatherReportDto>) {
+    Object.assign(this, partial);
+  }
 }
+

@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
+import { FlightTicket } from './flight-ticket.entity';
 
 @Entity('airports')
 export class Airport {
@@ -19,4 +20,10 @@ export class Airport {
 
   @Column({ length: 50, nullable: true })
   country: string;
+
+  @OneToMany(() => FlightTicket, flightTicket => flightTicket.originAirport)
+  departingFlights: FlightTicket[];
+
+  @OneToMany(() => FlightTicket, flightTicket => flightTicket.destinationAirport)
+  arrivingFlights: FlightTicket[];
 }

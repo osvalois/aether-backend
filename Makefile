@@ -59,6 +59,10 @@ install:
 
 # Development
 dev:
+	@echo "Installing dependencies..."
+	@$(MAKE) install
+	@echo "Building the project..."
+	@$(PNPM) run build
 	@echo "Starting development server..."
 	@$(PNPM) run start:dev
 

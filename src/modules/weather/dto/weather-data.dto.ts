@@ -1,10 +1,13 @@
+// weather-data.dto.ts
 import { IsString, IsNumber, IsDate, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class WeatherDataDto {
   @IsString()
   airportCode: string;
 
   @IsDate()
+  @Type(() => Date)
   timestamp: Date;
 
   @IsNumber()
@@ -30,4 +33,8 @@ export class WeatherDataDto {
   @IsNumber()
   @IsOptional()
   visibility?: number;
+
+  constructor(partial: Partial<WeatherDataDto>) {
+    Object.assign(this, partial);
+  }
 }
