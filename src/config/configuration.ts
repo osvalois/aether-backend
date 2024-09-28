@@ -14,7 +14,11 @@ export default registerAs('app', () => ({
     synchronize: process.env.NODE_ENV === 'development',
     logging: process.env.NODE_ENV === 'development',
     ssl: {
+      require: true,
       rejectUnauthorized: false,
+    },
+    dialectOptions: {
+      project: process.env.ENDPOINT_ID, // Add this if you have an ENDPOINT_ID for Neon
     },
   },
   kafka: {

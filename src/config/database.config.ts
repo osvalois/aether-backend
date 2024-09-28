@@ -11,9 +11,7 @@ export default registerAs('database', (): TypeOrmModuleOptions => ({
   entities: ['dist/**/*.entity{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
-  } : false,
+  ssl: true,
   extra: {
     max: 20,
     idleTimeoutMillis: 30000,
