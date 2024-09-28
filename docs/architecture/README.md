@@ -1,4 +1,3 @@
-```markdown
 # Aether System Architecture
 
 ## Table of Contents

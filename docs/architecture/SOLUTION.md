@@ -1,4 +1,3 @@
-```markdown
 # Aether System Architecture Diagram
 
 ## High-Level Architecture
