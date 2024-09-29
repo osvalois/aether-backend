@@ -21,6 +21,8 @@ export class WeatherApiService {
   async fetchWeatherData(iataCode: string): Promise<WeatherData> {
     try {
       const url = `${this.apiBaseUrl}/current.json?key=${this.apiKey}&q=${iataCode}`;
+      
+      this.logger.log(`Fetch weather data for ${url}`);
       const response = await lastValueFrom(this.httpService.get(url));
       return this.transformApiResponse(response.data, iataCode);
     } catch (error) {

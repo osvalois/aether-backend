@@ -30,43 +30,27 @@ export class FlightController {
       throw new HttpException('Failed to create flight ticket', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @Post('bulk')
   @ApiOperation({ summary: 'Bulk create flight tickets' })
   @ApiBody({ type: BulkCreateFlightTicketDto })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Flight tickets have been successfully created.', type: BulkIngestionResultDto })
-  async bulkCreateFlightTickets(@Body(new ValidationPipe()) bulkCreateFlightTicketDto: BulkCreateFlightTicketDto): Promise<BulkIngestionResultDto> {
-    this.logger.log(`Received bulk ingestion request for ${bulkCreateFlightTicketDto.flightTickets.length} tickets`);
-    
+  async bulkCreateFlightTickets(@Body(new ValidationPipe({ transform: true, validateCustomDecorators: true })) bulkCreateFlightTicketDto: BulkCreateFlightTicketDto): Promise<BulkIngestionResultDto> {
     try {
-      const chunkSize = 1000; // Process in chunks of 1000 tickets
-      let overallResult: BulkIngestionResultDto = {
-        successCount: 0,
-        failureCount: 0,
-        successfulTickets: [],
-        errors: []
-      };
-
-      for (let i = 0; i < bulkCreateFlightTicketDto.flightTickets.length; i += chunkSize) {
-        const chunk = bulkCreateFlightTicketDto.flightTickets.slice(i, i + chunkSize);
-        const chunkResult = await this.flightService.bulkIngestFlightData(chunk);
-        
-        overallResult.successCount += chunkResult.successCount;
-        overallResult.failureCount += chunkResult.failureCount;
-        overallResult.successfulTickets.push(...chunkResult.successfulTickets);
-        overallResult.errors.push(...chunkResult.errors);
-
-        this.logger.log(`Processed chunk ${i / chunkSize + 1}. Success: ${chunkResult.successCount}, Failures: ${chunkResult.failureCount}`);
+      const result = await this.flightService.bulkIngestFlightData(bulkCreateFlightTicketDto.flightTickets);
+      if (result.failureCount > 0) {
+        throw new HttpException({
+          message: 'Partial success in bulk ingestion',
+          result: result
+        }, HttpStatus.PARTIAL_CONTENT);
       }
-
-      this.logger.log(`Bulk ingestion completed. Total Success: ${overallResult.successCount}, Total Failures: ${overallResult.failureCount}`);
-      return overallResult;
+      return result;
     } catch (error) {
-      this.logger.error(`Bulk ingestion failed: ${error.message}`, error.stack);
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new HttpException('Bulk ingestion failed', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get a flight ticket by id' })
   @ApiParam({ name: 'id', type: 'string' })

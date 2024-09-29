@@ -9,6 +9,7 @@ import { WeatherData } from './entities/weather-data.entity';
 import { FlightService } from '../flight/services/flight.service';
 import { RedisModule } from 'src/redis/redis.module';
 import { WeatherController } from './controllers/weather.controller';
+import { WeatherDataProducer } from 'src/kafka/producers/weather-data.producer';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WeatherController } from './controllers/weather.controller';
     WeatherService,
     WeatherApiService,
     WeatherDataRepository,
+    WeatherDataProducer
   ],
   controllers: [WeatherController],
   exports: [WeatherService],

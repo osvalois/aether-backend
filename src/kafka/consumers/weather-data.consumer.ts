@@ -1,7 +1,9 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { KafkaJS } from '@confluentinc/kafka-javascript';
 import { Logger } from '../../utils/logger';
-import { WeatherService } from 'src/modules/weather/services/weather.service';
+import { WeatherService } from '../../modules/weather/services/weather.service';
+import { WeatherDataDto } from '../../modules/weather/dto/weather-data.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
@@ -9,16 +11,19 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
   private consumer: KafkaJS.Consumer;
   private kafka: KafkaJS.Kafka;
 
-  constructor(private readonly weatherService: WeatherService) {
+  constructor(
+    private readonly weatherService: WeatherService,
+    private configService: ConfigService
+  ) {
     this.kafka = new KafkaJS.Kafka({
       kafkaJS: {
-        clientId: process.env.KAFKA_CLIENT_ID || 'aether-backend',
-        brokers: ['pkc-zgp5j7.us-south1.gcp.confluent.cloud:9092'],
+        clientId: this.configService.get('KAFKA_CLIENT_ID'),
+        brokers: [this.configService.get('KAFKA_BROKERS')],
         ssl: true,
         sasl: {
           mechanism: 'plain',
-          username: process.env.KAFKA_API_KEY || '24T6O7XQAMPYNJ6F',
-          password: process.env.KAFKA_API_SECRET || 'O/6Y156iyEwlUkONrRTDDDngyCWhtBhOr5PJJQWUZ/oFSrdXgvQoX7h7MO3RJ0QJ',
+          username: this.configService.get('KAFKA_API_KEY'),
+          password: this.configService.get('KAFKA_API_SECRET'),
         },
       }
     });
@@ -37,32 +42,54 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
   }
 
   async consumeWeatherData() {
-    await this.consumer.subscribe({ topic: 'weather-data-updates' });
+    await this.consumer.subscribe({ topics: ['weather-data-updates', 'flight-data-ingested'] });
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
-          await this.processMessage(message);
+          if (topic === 'weather-data-updates') {
+            await this.processWeatherData(message);
+          } else if (topic === 'flight-data-ingested') {
+            await this.processFlightData(message);
+          }
         } catch (error) {
           this.logger.error(`Error processing message: ${error.message}`, error.stack);
-          // Implementa tu estrategia de manejo de errores aquí (por ejemplo, cola de mensajes muertos, mecanismo de reintento)
+          // Implement your error handling strategy here (e.g., dead letter queue, retry mechanism)
         }
       },
     });
   }
 
-  private async processMessage(message: KafkaJS.Message) {
+  private async processWeatherData(message: KafkaJS.Message) {
     if (!message.value) {
-      this.logger.warn('Received message with no value');
+      this.logger.warn('Received weather data message with no value');
       return;
     }
 
-    const weatherData = JSON.parse(message.value.toString());
+    const weatherData: WeatherDataDto = JSON.parse(message.value.toString());
     this.logger.log(`Processing weather data for airport: ${weatherData.airportCode}`);
 
     await this.weatherService.updateWeatherData(weatherData);
 
     this.logger.log(`Successfully processed weather data for airport: ${weatherData.airportCode}`);
+  }
+
+  private async processFlightData(message: KafkaJS.Message) {
+    if (!message.value) {
+      this.logger.warn('Received flight data message with no value');
+      return;
+    }
+
+    const flightData = JSON.parse(message.value.toString());
+    this.logger.log(`Processing flight data for flight: ${flightData.flightNum}`);
+
+    // Trigger weather data fetch for origin and destination airports
+    await Promise.all([
+      this.weatherService.getWeatherForAirport(flightData.origin),
+      this.weatherService.getWeatherForAirport(flightData.destination)
+    ]);
+
+    this.logger.log(`Successfully processed flight data for flight: ${flightData.flightNum}`);
   }
 
   async onModuleDestroy() {

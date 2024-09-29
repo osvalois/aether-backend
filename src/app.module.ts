@@ -8,6 +8,7 @@ import databaseConfig from './config/database.config';
 import { FlightModule } from './modules/flight/flight.module';
 import { WeatherModule } from './modules/weather/weather.module';
 import { ReportModule } from './modules/report/report.module';
+import { ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler';
 
 @Module({
   imports: [

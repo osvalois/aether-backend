@@ -1,24 +1,24 @@
+// src/kafka/producers/weather-data.producer.ts
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { KafkaJS } from '@confluentinc/kafka-javascript';
 import { ConfigService } from '@nestjs/config';
-import { FlightTicket } from '../../modules/flight/entities/flight-ticket.entity';
+import { WeatherData } from '../../modules/weather/entities/weather-data.entity';
 
 @Injectable()
-export class FlightDataProducer implements OnModuleInit, OnModuleDestroy {
+export class WeatherDataProducer implements OnModuleInit, OnModuleDestroy {
   private producer: KafkaJS.Producer;
   private kafka: KafkaJS.Kafka;
 
   constructor(private configService: ConfigService) {
-    this.kafka = new 
-    KafkaJS.Kafka({
+    this.kafka = new KafkaJS.Kafka({
       kafkaJS: {
-        clientId: process.env.KAFKA_CLIENT_ID || '',
-        brokers: [process.env.KAFKA_BROKERS || ''],
-       ssl: true,
+        clientId: this.configService.get('KAFKA_CLIENT_ID'),
+        brokers: [this.configService.get('KAFKA_BROKERS')],
+        ssl: true,
         sasl: {
           mechanism: 'plain',
-          username: process.env.KAFKA_API_KEY || '',
-          password: process.env.KAFKA_API_SECRET || '',
+          username: this.configService.get('KAFKA_API_KEY'),
+          password: this.configService.get('KAFKA_API_SECRET'),
         },
       }
     });
@@ -40,17 +40,17 @@ export class FlightDataProducer implements OnModuleInit, OnModuleDestroy {
     await this.producer.disconnect();
   }
 
-  async publishFlightData(flightTicket: FlightTicket): Promise<void> {
+  async publishWeatherData(weatherData: WeatherData): Promise<void> {
     const message: KafkaJS.Message = {
-      key: flightTicket.id,
-      value: JSON.stringify(flightTicket),
+      key: weatherData.airportCode,
+      value: JSON.stringify(weatherData),
       headers: {
         'content-type': 'application/json',
       },
     };
 
     await this.producer.send({
-      topic: 'flight-data-ingested',
+      topic: 'weather-data-updates',
       messages: [message],
     });
   }
