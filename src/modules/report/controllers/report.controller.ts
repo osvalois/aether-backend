@@ -1,3 +1,4 @@
+// report.controller.ts (sin cambios, pero incluido para completitud)
 import { Controller, Get, Post, Param, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ReportService } from '../services/report.service';

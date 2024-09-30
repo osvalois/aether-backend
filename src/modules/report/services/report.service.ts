@@ -1,3 +1,4 @@
+// report.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -35,6 +36,24 @@ export class ReportService {
     await this.flightWeatherReportRepository.save(report);
 
     return this.mapToDto(report);
+  }
+
+  async generateReportsForAllFlights(): Promise<void> {
+    const flightData = await this.flightService.getAllFlightTickets();
+    
+    const errors = [];
+    
+    for (const flight of flightData.tickets) {
+      try {
+        await this.generateReport(flight.id);
+      } catch (error) {
+        errors.push({ flightId: flight.id, error: error.message });
+      }
+    }
+  
+    if (errors.length > 0) {
+      console.error(`Failed to generate reports for ${errors.length} flights:`, errors);
+    }
   }
 
   async getReportById(id: string): Promise<FlightWeatherReportDto> {

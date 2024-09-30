@@ -1,9 +1,13 @@
-import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from 'typeorm';
 import { FlightTicket } from './flight-ticket.entity';
 
 @Entity('airports')
 export class Airport {
-  @PrimaryColumn({ length: 3 })
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Index({ unique: true })
+  @Column({ length: 3, unique: true })
   iataCode: string;
 
   @Column({ length: 100 })

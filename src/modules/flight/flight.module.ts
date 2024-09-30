@@ -9,6 +9,10 @@ import { FlightDataProducer } from '../../kafka/producers/flight-data.producer';
 import { AirportRepository } from './repositories/airport.repository';
 import { RedisModule } from 'src/redis/redis.module';
 import { WebSocketModule } from 'src/ws/web-socket.module';
+import { AirportService } from './services/airport.service';
+import { CacheService } from './services/cache.service';
+import { NotificationService } from './services/notification.service';
+import { FlightValidator } from './validators/flight.validator';
 
 
 @Module({
@@ -22,7 +26,11 @@ import { WebSocketModule } from 'src/ws/web-socket.module';
     FlightService,
     FlightDataProducer,
     AirportRepository,
+    AirportService,
+    NotificationService,
+    CacheService,
+    FlightValidator
   ],
-  exports: [FlightService],
+  exports: [FlightService, AirportService, CacheService],
 })
 export class FlightModule {}

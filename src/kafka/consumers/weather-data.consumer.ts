@@ -82,6 +82,12 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
               this.logger.warn(`Received message for unexpected topic: ${topic}`);
             }
             this.prometheusService.incrementMessageProcessed(topic);
+            
+            // Commit the offset to mark the message as processed
+            await this.consumer.commitOffsets([
+              { topic, partition, offset: (parseInt(message.offset) + 1).toString() }
+            ]);
+            this.logger.log(`Committed offset ${message.offset} for topic: ${topic}, partition: ${partition}`);
           } catch (error) {
             this.logger.error(`Error processing message: ${error.message}`, error.stack);
             this.prometheusService.incrementMessageFailed(topic);
