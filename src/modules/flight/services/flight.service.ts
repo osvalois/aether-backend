@@ -1,32 +1,45 @@
-// flight.service.ts
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager, In } from 'typeorm';
 import { FlightTicket } from '../entities/flight-ticket.entity';
 import { Airport } from '../entities/airport.entity';
-import { CreateFlightTicketDto, FlightTicketDto, BulkIngestionResultDto } from '../dto/flight-ticket.dto';
+import { CreateFlightTicketDto, FlightTicketDto, BulkIngestionResultDto, UpdateFlightTicketDto } from '../dto/flight-ticket.dto';
 import { FlightDataProducer } from '../../../kafka/producers/flight-data.producer';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { chunk } from 'lodash';
 import { RedisService } from 'src/redis/redis.service';
 import { WebSocketService } from 'src/ws/web-socket.service';
+import { AirportRepository } from '../repositories/airport.repository';
+import { Interval } from '@nestjs/schedule';
 
 @Injectable()
 export class FlightService {
     private readonly logger = new Logger(FlightService.name);
+    private airportCache: Map<string, Airport> = new Map();
 
     constructor(
         @InjectRepository(FlightTicket)
         private readonly flightTicketRepository: Repository<FlightTicket>,
-        @InjectRepository(Airport)
-        private readonly airportRepository: Repository<Airport>,
+        private readonly airportRepository: AirportRepository,
         private readonly flightDataProducer: FlightDataProducer,
         private readonly dataSource: DataSource,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
         private readonly webSocketService: WebSocketService,
-    ) {}
+    ) {
+        this.initializeAirportCache();
+    }
+
+    private async initializeAirportCache(): Promise<void> {
+        const airports = await this.airportRepository.findAll();
+        airports.forEach(airport => this.airportCache.set(airport.iataCode, airport));
+    }
+
+    @Interval(60000) // Refresh cache every minute
+    private async refreshAirportCache(): Promise<void> {
+        await this.initializeAirportCache();
+    }
 
     async bulkIngestFlightData(flightTickets: CreateFlightTicketDto[]): Promise<BulkIngestionResultDto> {
         const batchSize = this.configService.get<number>('BATCH_SIZE', 1000);
@@ -37,7 +50,7 @@ export class FlightService {
         const allErrors: string[] = [];
         const allSuccessfulTickets: FlightTicketDto[] = [];
 
-        for (const batch of chunks) {
+        await Promise.all(chunks.map(async (batch) => {
             try {
                 const result = await this.processBatch(batch);
                 totalSuccess += result.successCount;
@@ -49,7 +62,7 @@ export class FlightService {
                 totalFailure += batch.length;
                 allErrors.push(`Batch processing failed: ${error.message}`);
             }
-        }
+        }));
 
         const result = {
             successCount: totalSuccess,
@@ -65,17 +78,17 @@ export class FlightService {
     }
 
     private async processBatch(batch: CreateFlightTicketDto[]): Promise<BulkIngestionResultDto> {
-        const airportCache = new Map<string, Airport>();
         const successfulTickets: FlightTicketDto[] = [];
         const errors: string[] = [];
 
         await this.dataSource.transaction(async (transactionalEntityManager) => {
             for (const ticketDto of batch) {
                 try {
-                    const ticket = await this.processFlightTicket(ticketDto, transactionalEntityManager, airportCache);
+                    const ticket = await this.processFlightTicket(ticketDto, transactionalEntityManager);
                     const savedTicket = await transactionalEntityManager.save(FlightTicket, ticket);
                     successfulTickets.push(this.mapToFlightTicketDto(savedTicket));
                 } catch (error) {
+                    this.logger.error(`Failed to process ticket: ${error.message}`, error.stack);
                     errors.push(`Failed to process ticket: ${error.message}`);
                 }
             }
@@ -96,11 +109,10 @@ export class FlightService {
 
     private async processFlightTicket(
         ticketDto: CreateFlightTicketDto,
-        transactionalEntityManager: EntityManager,
-        airportCache: Map<string, Airport>
+        transactionalEntityManager: EntityManager
     ): Promise<FlightTicket> {
-        const originAirport = await this.getOrCreateAirport(ticketDto.originAirport, transactionalEntityManager, airportCache);
-        const destinationAirport = await this.getOrCreateAirport(ticketDto.destinationAirport, transactionalEntityManager, airportCache);
+        const originAirport = await this.getOrCreateAirport(ticketDto.originAirport, transactionalEntityManager);
+        const destinationAirport = await this.getOrCreateAirport(ticketDto.destinationAirport, transactionalEntityManager);
 
         return transactionalEntityManager.create(FlightTicket, {
             ...ticketDto,
@@ -111,24 +123,33 @@ export class FlightService {
 
     private async getOrCreateAirport(
         airportData: Partial<Airport>,
-        transactionalEntityManager: EntityManager,
-        cache: Map<string, Airport>
+        transactionalEntityManager: EntityManager
     ): Promise<Airport> {
         if (!airportData.iataCode) {
             throw new Error('IATA code is required for airport');
         }
 
-        const cachedAirport = cache.get(airportData.iataCode);
-        if (cachedAirport) return cachedAirport;
+        let airport = this.airportCache.get(airportData.iataCode);
+        if (airport) return airport;
 
-        let airport = await transactionalEntityManager.findOne(Airport, { where: { iataCode: airportData.iataCode } });
-        if (!airport) {
-            airport = transactionalEntityManager.create(Airport, airportData);
-            await transactionalEntityManager.save(airport);
-            this.logger.log(`Created new airport: ${airport.iataCode}`);
+        try {
+            airport = await transactionalEntityManager.findOne(Airport, { where: { iataCode: airportData.iataCode } });
+            if (!airport) {
+                airport = transactionalEntityManager.create(Airport, airportData);
+                await transactionalEntityManager.save(airport);
+                this.logger.log(`Created new airport: ${airport.iataCode}`);
+            } else {
+                // Update existing airport data if necessary
+                Object.assign(airport, airportData);
+                await transactionalEntityManager.save(airport);
+                this.logger.log(`Updated existing airport: ${airport.iataCode}`);
+            }
+        } catch (error) {
+            this.logger.error(`Error creating/updating airport ${airportData.iataCode}: ${error.message}`);
+            throw error;
         }
 
-        cache.set(airportData.iataCode, airport);
+        this.airportCache.set(airportData.iataCode, airport);
         return airport;
     }
 
@@ -150,23 +171,31 @@ export class FlightService {
         this.webSocketService.sendToAll('newFlightTickets', flightTickets);
     }
 
-    @Cron('0 */5 * * * *') // Run every 5 minutes
+    @Cron(CronExpression.EVERY_5_MINUTES)
     async processBackloggedData() {
-        const backlogKeys = await this.redisService.get('flight_data_backlog:*');
-        let processedCount = 0;
-        for (const key of backlogKeys) {
+        const backlogPattern = 'flight_data_backlog:*';
+        const backlogKeys = await this.redisService.getKeysByPattern(backlogPattern);
+        
+        if (backlogKeys.length === 0) {
+            this.logger.log('No backlogged data to process');
+            return;
+        }
+
+        const processedCount = await Promise.all(backlogKeys.map(async (key) => {
             const ticketData = await this.redisService.get(key);
             if (ticketData) {
                 const ticket = JSON.parse(ticketData) as FlightTicketDto;
                 try {
                     await this.flightDataProducer.publishFlightData(this.mapDtoToEntity(ticket));
                     await this.redisService.del(key);
-                    processedCount++;
+                    return 1;
                 } catch (error) {
                     this.logger.error(`Failed to process backlogged ticket ${ticket.id}: ${error.message}`);
+                    return 0;
                 }
             }
-        }
+            return 0;
+        })).then(results => results.reduce((a, b) => a + b, 0));
 
         // Notify clients about processed backlog data
         this.webSocketService.sendToAll('backlogProcessed', { processedCount });
@@ -240,7 +269,7 @@ export class FlightService {
         return result;
     }
 
-    async updateFlightTicket(id: string, updateData: Partial<CreateFlightTicketDto>): Promise<FlightTicketDto> {
+    async updateFlightTicket(id: string, updateData: Partial<UpdateFlightTicketDto>): Promise<FlightTicketDto> {
         const existingTicket = await this.flightTicketRepository.findOne({
             where: { id },
             relations: ['originAirport', 'destinationAirport']
@@ -252,10 +281,10 @@ export class FlightService {
 
         await this.dataSource.transaction(async (transactionalEntityManager) => {
             if (updateData.originAirport) {
-                existingTicket.originAirport = await this.getOrCreateAirport(updateData.originAirport, transactionalEntityManager, new Map());
+                existingTicket.originAirport = await this.getOrCreateAirport(updateData.originAirport, transactionalEntityManager);
             }
             if (updateData.destinationAirport) {
-                existingTicket.destinationAirport = await this.getOrCreateAirport(updateData.destinationAirport, transactionalEntityManager, new Map());
+                existingTicket.destinationAirport = await this.getOrCreateAirport(updateData.destinationAirport, transactionalEntityManager);
             }
 
             Object.assign(existingTicket, updateData);
@@ -298,7 +327,6 @@ export class FlightService {
 
         return { deletedCount: result.affected || 0 };
     }
-
     private mapToFlightTicketDto(ticket: FlightTicket): FlightTicketDto {
         return {
             id: ticket.id,
@@ -315,5 +343,114 @@ export class FlightService {
         const entity = new FlightTicket();
         Object.assign(entity, dto);
         return entity;
+    }
+
+    async retryFailedTickets(): Promise<number> {
+        const backlogPattern = 'flight_data_backlog:*';
+        const backlogKeys = await this.redisService.getKeysByPattern(backlogPattern);
+        
+        let retryCount = 0;
+        for (const key of backlogKeys) {
+            const ticketData = await this.redisService.get(key);
+            if (ticketData) {
+                const ticket = JSON.parse(ticketData) as FlightTicketDto;
+                try {
+                    await this.flightDataProducer.publishFlightData(this.mapDtoToEntity(ticket));
+                    await this.redisService.del(key);
+                    retryCount++;
+                } catch (error) {
+                    this.logger.error(`Failed to retry ticket ${ticket.id}: ${error.message}`);
+                }
+            }
+        }
+
+        return retryCount;
+    }
+
+    @Cron(CronExpression.EVERY_HOUR)
+    async cleanupOldCacheEntries(): Promise<void> {
+        const expiredKeys = await this.redisService.getKeysByPattern('flight_ticket:*');
+        for (const key of expiredKeys) {
+            const value = await this.redisService.get(key);
+            if (!value) {
+                await this.redisService.del(key);
+            }
+        }
+    }
+
+    async getFlightStatistics(): Promise<any> {
+        // Implement flight statistics calculation
+        // This could include total flights, flights by airline, popular routes, etc.
+        // You might want to use aggregation queries in your database for this
+        throw new Error('Not implemented');
+    }
+
+    private async validateFlightData(flightTicket: CreateFlightTicketDto): Promise<string[]> {
+        const errors: string[] = [];
+
+        if (!flightTicket.origin || !flightTicket.destination) {
+            errors.push('Origin and destination are required');
+        }
+
+        if (flightTicket.origin === flightTicket.destination) {
+            errors.push('Origin and destination must be different');
+        }
+
+        if (!flightTicket.airline || !flightTicket.flightNum) {
+            errors.push('Airline and flight number are required');
+        }
+
+        // Add more validation as needed
+
+        return errors;
+    }
+
+    async bulkUpsertAirports(airports: Partial<Airport>[]): Promise<number> {
+        const upsertedCount = await this.dataSource.transaction(async (transactionalEntityManager) => {
+            let count = 0;
+            for (const airportData of airports) {
+                try {
+                    await this.getOrCreateAirport(airportData, transactionalEntityManager);
+                    count++;
+                } catch (error) {
+                    this.logger.error(`Failed to upsert airport ${airportData.iataCode}: ${error.message}`);
+                }
+            }
+            return count;
+        });
+
+        await this.refreshAirportCache();
+        return upsertedCount;
+    }
+
+    async getAirportByIataCode(iataCode: string): Promise<Airport> {
+        const airport = this.airportCache.get(iataCode) || await this.airportRepository.findByIataCode(iataCode);
+        if (!airport) {
+            throw new NotFoundException(`Airport with IATA code ${iataCode} not found`);
+        }
+        return airport;
+    }
+
+    private async ensureAirportsExist(originIataCode: string, destinationIataCode: string): Promise<void> {
+        await Promise.all([
+            this.getAirportByIataCode(originIataCode),
+            this.getAirportByIataCode(destinationIataCode)
+        ]);
+    }
+
+    async createFlightTicket(createFlightTicketDto: CreateFlightTicketDto): Promise<FlightTicketDto> {
+        const errors = await this.validateFlightData(createFlightTicketDto);
+        if (errors.length > 0) {
+            throw new Error(`Invalid flight data: ${errors.join(', ')}`);
+        }
+
+        await this.ensureAirportsExist(createFlightTicketDto.origin, createFlightTicketDto.destination);
+
+        const result = await this.bulkIngestFlightData([createFlightTicketDto]);
+        if (result.successCount === 1) {
+            return result.successfulTickets[0];
+        } else {
+            throw new Error('Failed to create flight ticket');
+        }
     }
 }

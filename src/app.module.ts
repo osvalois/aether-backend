@@ -9,6 +9,8 @@ import { FlightModule } from './modules/flight/flight.module';
 import { WeatherModule } from './modules/weather/weather.module';
 import { ReportModule } from './modules/report/report.module';
 import { ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler';
+import { PrometheusModule } from './prometeus/prometheus.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -24,7 +26,9 @@ import { ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler';
     ScheduleModule.forRoot(),
     FlightModule,
     WeatherModule,
+    KafkaModule,
     ReportModule,
+    PrometheusModule,
     RedisModule
   ],
 })
