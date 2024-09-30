@@ -12,7 +12,6 @@ export class WeatherDataProducer implements OnModuleInit, OnModuleDestroy {
   constructor(private configService: ConfigService) {
     this.kafka = new KafkaJS.Kafka({
       kafkaJS: {
-        clientId: this.configService.get('KAFKA_CLIENT_ID'),
         brokers: [this.configService.get('KAFKA_BROKERS')],
         ssl: true,
         sasl: {

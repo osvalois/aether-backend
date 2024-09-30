@@ -21,7 +21,6 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
   ) {
     this.kafka = new KafkaJS.Kafka({
       kafkaJS: {
-        clientId: this.configService.get('KAFKA_CLIENT_ID'),
         brokers: this.configService.get('KAFKA_BROKERS').split(','),
         ssl: true,
         sasl: {
@@ -54,7 +53,7 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
     try {
       await this.consumer.connect();
       this.logger.log('Successfully connected to Kafka');
-      await this.consumeWeatherData();
+      await this.consumeData();
     } catch (error) {
       if (retries < this.maxRetries) {
         this.logger.warn(`Failed to connect to Kafka. Retrying in ${this.retryDelay}ms...`);
@@ -66,19 +65,21 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async consumeWeatherData() {
+  async consumeData() {
     try {
       await this.consumer.subscribe({ topics: ['weather-data-updates', 'flight-data-ingested'] });
       this.logger.log('Successfully subscribed to Kafka topics');
-
       await this.consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
-          this.logger.log(`Received message from topic: ${topic}, partition: ${partition}`);
+          this.logger.log(`Received message from topic: ${topic}, partition: ${partition}, offset: ${message.offset}`);
           try {
+            this.logger.log(`Processing data for topic: ${topic}`);
             if (topic === 'weather-data-updates') {
               await this.processWeatherData(message);
             } else if (topic === 'flight-data-ingested') {
               await this.processFlightData(message);
+            } else {
+              this.logger.warn(`Received message for unexpected topic: ${topic}`);
             }
             this.prometheusService.incrementMessageProcessed(topic);
           } catch (error) {
@@ -89,8 +90,7 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to consume weather data: ${error.message}`, error.stack);
-      // Implement retry logic or notification here
+      this.logger.error(`Failed to consume data: ${error.message}`, error.stack);
       await this.connectWithRetry();
     }
   }
@@ -117,17 +117,17 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
       this.logger.warn('Received flight data message with no value');
       return;
     }
-
+  
     const flightData = JSON.parse(message.value.toString());
     this.logger.log(`Processing flight data for flight: ${flightData.flightNum}`);
-
+  
     const startTime = Date.now();
     await Promise.all([
       this.weatherService.getWeatherForAirport(flightData.origin),
       this.weatherService.getWeatherForAirport(flightData.destination)
     ]);
     const processingTime = Date.now() - startTime;
-
+  
     this.logger.log(`Successfully processed flight data for flight: ${flightData.flightNum} in ${processingTime}ms`);
     this.prometheusService.recordProcessingTime('flight-data-ingested', processingTime);
   }

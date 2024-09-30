@@ -12,7 +12,6 @@ export class FlightDataProducer implements OnModuleInit, OnModuleDestroy {
     this.kafka = new 
     KafkaJS.Kafka({
       kafkaJS: {
-        clientId: process.env.KAFKA_CLIENT_ID || '',
         brokers: [process.env.KAFKA_BROKERS || ''],
        ssl: true,
         sasl: {
