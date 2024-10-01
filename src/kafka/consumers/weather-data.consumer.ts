@@ -60,7 +60,6 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
         setTimeout(() => this.connectWithRetry(retries + 1), this.retryDelay);
       } else {
         this.logger.error(`Failed to connect to Kafka after ${this.maxRetries} attempts: ${error.message}`, error.stack);
-        // Implement notification logic here (e.g., send an alert to operations team)
       }
     }
   }
@@ -82,8 +81,6 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
               this.logger.warn(`Received message for unexpected topic: ${topic}`);
             }
             this.prometheusService.incrementMessageProcessed(topic);
-            
-            // Commit the offset to mark the message as processed
             await this.consumer.commitOffsets([
               { topic, partition, offset: (parseInt(message.offset) + 1).toString() }
             ]);
@@ -91,7 +88,6 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
           } catch (error) {
             this.logger.error(`Error processing message: ${error.message}`, error.stack);
             this.prometheusService.incrementMessageFailed(topic);
-            // Implement dead-letter queue logic here
             await this.sendToDeadLetterQueue(topic, message);
           }
         },
