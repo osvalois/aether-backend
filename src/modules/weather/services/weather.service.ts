@@ -23,15 +23,13 @@ export class WeatherService {
 
   async getWeatherForAirport(iataCode: string): Promise<WeatherData> {
     const cacheKey = `weather:${iataCode}`;
-    
-    // Try to get data from cache
+
     const cachedData = await this.redisService.get(cacheKey);
     if (cachedData) {
       this.logger.log(`Cache hit for weather data: ${iataCode}`);
       return JSON.parse(cachedData);
     }
 
-    // If not in cache, check the database for recent data
     const recentData = await this.weatherDataRepository.findOne({
       where: { airportCode: iataCode },
       order: { timestamp: 'DESC' }
@@ -42,7 +40,6 @@ export class WeatherService {
       return recentData;
     }
 
-    // If no recent data, fetch from API
     const weatherData = await this.weatherApiService.fetchWeatherData(iataCode);
     const savedWeatherData = await this.saveWeatherData(weatherData);
 
@@ -98,8 +95,6 @@ export class WeatherService {
     return savedData;
   }
   async getBulkWeatherForAirports(airportCodes: string[]): Promise<Record<string, any>> {
-    // Implement bulk weather fetching logic here
-    // This is a placeholder implementation
     const weatherPromises = airportCodes.map(code => this.getWeatherForAirport(code));
     const weatherResults = await Promise.all(weatherPromises);
     return Object.fromEntries(airportCodes.map((code, index) => [code, weatherResults[index]]));
