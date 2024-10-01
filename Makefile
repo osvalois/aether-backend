@@ -5,6 +5,7 @@ SHELL := /bin/bash
 PNPM := pnpm
 DOCKER := docker
 DOCKER_COMPOSE := docker-compose
+SONAR_SCANNER := sonar-scanner
 
 # Application
 APP_NAME := aether-backend
@@ -20,7 +21,7 @@ DIST_DIR := dist
 TEST_DIR := test
 
 # Commands
-.PHONY: help install dev build start test lint format clean docker-build docker-run docker-push k8s-deploy
+.PHONY: help install dev build start test lint format clean docker-build docker-run docker-push k8s-deploy sonar
 
 # Help command
 help:
@@ -43,6 +44,7 @@ help:
 	@echo "  docker-run        Run Docker container"
 	@echo "  docker-push       Push Docker image to registry"
 	@echo "  k8s-deploy        Deploy to Kubernetes"
+	@echo "  sonar             Run SonarQube analysis"
 
 # Installation
 install:
@@ -120,6 +122,15 @@ docker-push:
 k8s-deploy:
 	@echo "Deploying to Kubernetes..."
 	@kubectl apply -f k8s/
+
+# SonarQube analysis
+sonar:
+	@echo "Running SonarQube analysis..."
+	@$(SONAR_SCANNER) \
+		-Dsonar.projectKey=osvalois_aether-backend \
+		-Dsonar.organization=osvalois \
+		-Dsonar.sources=. \
+		-Dsonar.host.url=https://sonarcloud.io
 
 # Default target
 .DEFAULT_GOAL := help
