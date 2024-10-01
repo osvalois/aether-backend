@@ -60,7 +60,6 @@ export class FlightValidator {
     }
 
     private isValidFlightNumber(flightNum: string): boolean {
-        // This is a simple regex for flight numbers. Adjust as needed for your specific requirements.
         const flightNumRegex = /^[A-Z]{2,3}\d{1,4}[A-Z]?$/;
         return flightNumRegex.test(flightNum);
     }
