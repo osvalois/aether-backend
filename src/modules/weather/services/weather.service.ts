@@ -65,7 +65,7 @@ export class WeatherService {
     await this.cacheWeatherData(`weather:${savedData.airportCode}`, savedData);
     
     // Publish updates to Kafka
-    await this.weatherDataProducer.publishWeatherData(savedData);
+    //await this.weatherDataProducer.publishWeatherData(savedData);
 
     return savedData;
   }

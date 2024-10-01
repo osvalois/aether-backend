@@ -91,7 +91,8 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
           } catch (error) {
             this.logger.error(`Error processing message: ${error.message}`, error.stack);
             this.prometheusService.incrementMessageFailed(topic);
-            await this.handleProcessingError(topic, message, error);
+            // Implement dead-letter queue logic here
+            await this.sendToDeadLetterQueue(topic, message);
           }
         },
       });
@@ -138,44 +139,26 @@ export class WeatherDataConsumer implements OnModuleInit, OnModuleDestroy {
     this.prometheusService.recordProcessingTime('flight-data-ingested', processingTime);
   }
 
-  private async handleProcessingError(topic: string, message: KafkaJS.Message, error: Error) {
-    const retryCount = parseInt(message.headers?.retryCount?.toString() || '0');
-    if (retryCount < this.maxRetries) {
-      await this.retryMessage(topic, message, retryCount + 1);
-    } else {
-      await this.sendToDeadLetterQueue(topic, message, error);
-    }
-  }
-
-  private async retryMessage(topic: string, message: KafkaJS.Message, retryCount: number) {
-    this.logger.log(`Retrying message for topic ${topic}. Attempt ${retryCount} of ${this.maxRetries}`);
-    const retryMessage = {
-      ...message,
-      headers: {
-        ...message.headers,
-        retryCount: Buffer.from(retryCount.toString()),
-      },
-    };
-    await this.kafka.producer().send({
-      topic,
-      messages: [retryMessage],
-    });
-  }
-
-  private async sendToDeadLetterQueue(topic: string, message: KafkaJS.Message, error: Error) {
-    this.logger.warn(`Sending message to Dead Letter Queue for topic ${topic}`);
+  private async sendToDeadLetterQueue(topic: string, message: KafkaJS.Message) {
     const deadLetterTopic = `${topic}-dead-letter`;
-    await this.kafka.producer().send({
-      topic: deadLetterTopic,
-      messages: [{
-        ...message,
-        headers: {
-          ...message.headers,
-          errorMessage: Buffer.from(error.message),
-          errorStack: Buffer.from(error.stack || ''),
-        },
-      }],
-    });
+    try {
+      await this.kafka.producer().send({
+        topic: deadLetterTopic,
+        messages: [
+          {
+            value: message.value,
+            headers: {
+              ...message.headers,
+              'x-original-topic': topic,
+              'x-error-timestamp': Date.now().toString(),
+            },
+          },
+        ],
+      });
+      this.logger.log(`Sent message to dead-letter queue: ${deadLetterTopic}`);
+    } catch (error) {
+      this.logger.error(`Failed to send message to dead-letter queue: ${error.message}`, error.stack);
+    }
   }
 
   async onModuleDestroy() {
