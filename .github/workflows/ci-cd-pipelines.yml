@@ -15,9 +15,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-    - run: npm ci
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+    - name: Install dependencies
+      run: make install
     - name: Run tests and generate coverage
-      run: npm run test:cov
+      run: make test:cov
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
     - name: Archive code coverage results
@@ -38,14 +43,12 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: true
-        tags: |
-          osvalois/aether-backend:${{ github.sha }}
-          osvalois/aether-backend:latest
+    - name: Build Docker image
+      run: make docker-build DOCKER_IMAGE_TAG=${{ github.sha }}
+    - name: Push Docker image
+      run: |
+        make docker-push DOCKER_IMAGE_TAG=${{ github.sha }}
+        make docker-push DOCKER_IMAGE_TAG=latest
 
   sonarqube:
     needs: test
@@ -69,7 +72,10 @@ jobs:
     needs: [build-and-push, sonarqube]
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: Deploy to production
       run: |
         # Add your deployment steps here
+        # For example, if you're using kubectl:
+        # make k8s-deploy
         echo "Deploying to production..."
