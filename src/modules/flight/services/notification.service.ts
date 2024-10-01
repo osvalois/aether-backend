@@ -8,7 +8,6 @@ export class NotificationService {
 
     constructor(private readonly webSocketService: WebSocketService) {}
 
-    // Flight Notifications
     notifyFlightTicketRetrieved(ticket: FlightTicketDto): void {
         this.sendNotification('flightTicketRetrieved', ticket);
     }
@@ -62,12 +61,10 @@ export class NotificationService {
         this.sendNotification('bulkAirportsUpserted', { count });
     }
 
-    // Search Notifications
     notifyFlightSearchResults(data: { origin: string; destination: string; resultsCount: number }): void {
         this.sendNotification('flightSearchResults', data);
     }
 
-    // Generic Notification Method
     private sendNotification(event: string, data: any): void {
         try {
             this.webSocketService.sendToAll(event, data);
@@ -77,7 +74,6 @@ export class NotificationService {
         }
     }
 
-    // Targeted Notifications
     sendToUser(userId: string, event: string, data: any): void {
         try {
             this.webSocketService.sendToUser(userId, event, data);
@@ -88,7 +84,6 @@ export class NotificationService {
     }
 
 
-    // System Notifications
     notifySystemError(error: Error): void {
         this.sendNotification('systemError', {
             message: error.message,
@@ -100,7 +95,6 @@ export class NotificationService {
         this.sendNotification('systemStatus', { status });
     }
 
-    // Maintenance Notifications
     notifyMaintenanceScheduled(data: { startTime: Date; endTime: Date; description: string }): void {
         this.sendNotification('maintenanceScheduled', data);
     }
