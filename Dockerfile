@@ -1,26 +1,46 @@
-# Use an official Node runtime as a parent image
-FROM node:16
+# syntax = docker/dockerfile:1
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=20.17.0
+FROM node:${NODE_VERSION}-slim as base
+
+LABEL fly_launch_runtime="NestJS"
+
+# NestJS app lives here
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV="production"
 
 # Install pnpm
-RUN npm install -g pnpm
+ARG PNPM_VERSION=9.8.0
+RUN npm install -g pnpm@$PNPM_VERSION
 
-# Copy package.json and pnpm-lock.yaml (if available)
-COPY package.json pnpm-lock.yaml* ./
 
-# Install project dependencies
-RUN pnpm install
+# Throw-away build stage to reduce size of final image
+FROM base as build
 
-# Copy project files and folders to the current working directory (i.e. 'app' folder)
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
+
+# Install node modules
+COPY package-lock.json package.json pnpm-lock.yaml yarn.lock ./
+RUN pnpm install --prod=false --no-frozen-lockfile
+
+# Copy application code
 COPY . .
 
-# Build the app
+# Build application
 RUN pnpm run build
 
-# Expose port 3000
-EXPOSE 3000
 
-# Start the server using production build
-CMD [ "pnpm", "run", "start:prod" ]
+# Final stage for app image
+FROM base
+
+# Copy built application
+COPY --from=build /app /app
+
+# Start the server by default, this can be overwritten at runtime
+EXPOSE 3000
+CMD [ "pnpm", "run", "start" ]
