@@ -1,755 +1,706 @@
-# Aether: Flight Weather Information System
+# Sistema de Información Meteorológica para Vuelos Aether
 
-<div align="center">
+![Logo de Aether](https://example.com/aether-logo.png)
 
-![Aether Logo](https://example.com/aether-logo.png)
+## Tabla de Contenidos
 
-[![Build Status](https://github.com/aether/backend/workflows/CI/badge.svg)](https://github.com/aether/backend/actions)
-[![Coverage Status](https://coveralls.io/repos/github/aether/backend/badge.svg?branch=main)](https://coveralls.io/github/aether/backend?branch=main)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Code Style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-[![Docker Pulls](https://img.shields.io/docker/pulls/aether/backend)](https://hub.docker.com/r/aether/backend)
-[![npm version](https://badge.fury.io/js/aether-backend.svg)](https://badge.fury.io/js/aether-backend)
+1. [Resumen Ejecutivo](#resumen-ejecutivo)
+2. [Visión General del Sistema](#visión-general-del-sistema)
+3. [Arquitectura del Sistema](#arquitectura-del-sistema)
+   3.1 [Diagrama de Arquitectura](#diagrama-de-arquitectura)
+   3.2 [Justificación de la Arquitectura](#justificación-de-la-arquitectura)
+4. [Módulos Principales](#módulos-principales)
+   4.1 [Módulo de Vuelos](#módulo-de-vuelos)
+   4.2 [Módulo del Clima](#módulo-del-clima)
+   4.3 [Módulo de Reportes](#módulo-de-reportes)
+5. [Integración con Servicios Externos](#integración-con-servicios-externos)
+6. [Gestión de Datos](#gestión-de-datos)
+   6.1 [Modelo de Datos](#modelo-de-datos)
+   6.2 [Estrategia de Caché](#estrategia-de-caché)
+7. [API y Endpoints](#api-y-endpoints)
+8. [Seguridad y Autenticación](#seguridad-y-autenticación)
+9. [Monitoreo y Observabilidad](#monitoreo-y-observabilidad)
+10. [Comunicación en Tiempo Real](#comunicación-en-tiempo-real)
+11. [Configuración y Entornos](#configuración-y-entornos)
+12. [Pruebas y Calidad](#pruebas-y-calidad)
+13. [Despliegue y Operaciones](#despliegue-y-operaciones)
+14. [Rendimiento y Optimización](#rendimiento-y-optimización)
+15. [Consideraciones Futuras](#consideraciones-futuras)
+16. [Glosario](#glosario)
+17. [Referencias y Bibliografía](#referencias-y-bibliografía)
 
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing) • [Support](#support)
+## 1. Resumen Ejecutivo
 
-</div>
+El Sistema de Información Meteorológica para Vuelos Aether es una solución de vanguardia diseñada para proporcionar datos meteorológicos precisos y en tiempo real para la industria de la aviación. Utilizando tecnologías de punta como NestJS, Apache Kafka, Redis, y servicios en la nube, Aether ofrece una plataforma robusta, escalable y altamente disponible para la gestión de información crítica de vuelos y condiciones meteorológicas.
 
-## Table of Contents
+Este documento proporciona una visión detallada de la arquitectura, componentes y decisiones técnicas que forman la base del sistema Aether, asegurando que cumpla con los más altos estándares de la industria y las mejores prácticas de ingeniería de software.
 
-1. [Introduction](#introduction)
-2. [Key Features](#key-features)
-3. [System Architecture](#system-architecture)
-4. [Technology Stack](#technology-stack)
-5. [Quick Start](#quick-start)
-6. [Installation](#installation)
-7. [Configuration](#configuration)
-8. [Usage](#usage)
-9. [API Reference](#api-reference)
-10. [Data Model](#data-model)
-11. [Core Functionalities](#core-functionalities)
-12. [Database Schema](#database-schema)
-13. [Kafka Integration](#kafka-integration)
-14. [Redis Caching Strategy](#redis-caching-strategy)
-15. [Security Measures](#security-measures)
-16. [Scalability and Performance](#scalability-and-performance)
-17. [Monitoring and Observability](#monitoring-and-observability)
-18. [Disaster Recovery and High Availability](#disaster-recovery-and-high-availability)
-19. [Development Workflow](#development-workflow)
-20. [Testing Strategy](#testing-strategy)
-21. [Deployment Guide](#deployment-guide)
-22. [Troubleshooting](#troubleshooting)
-23. [Research and Innovation](#research-and-innovation)
-24. [Compliance and Standards](#compliance-and-standards)
-25. [Contributing](#contributing)
-26. [Code of Conduct](#code-of-conduct)
-27. [License](#license)
-28. [Acknowledgments](#acknowledgments)
-29. [Support and Contact](#support-and-contact)
-30. [Changelog](#changelog)
+## 2. Visión General del Sistema
 
-## Introduction
+Aether es una aplicación backend modular que integra datos de vuelos con información meteorológica en tiempo real. Sus características principales incluyen:
 
-Aether is an backend system designed to provide real-time weather information for the aviation industry. Capable of processing over 3,000+ flight tickets daily, Aether offers timely weather updates for origin and destination airports, helping airlines and travelers access important meteorological data.
+- Gestión de información de vuelos y aeropuertos
+- Obtención y procesamiento de datos meteorológicos en tiempo real
+- Generación de reportes detallados de condiciones meteorológicas para rutas de vuelo
+- API RESTful para integración con sistemas externos
+- Procesamiento de eventos en tiempo real utilizando Apache Kafka
+- Caché de alto rendimiento con Redis
+- Monitoreo avanzado con Prometheus y Grafana
 
-### Vision
+## 3. Arquitectura del Sistema
 
-To enhance aviation safety and efficiency by providing accurate and timely weather information around the world.
-
-### Mission
-
-To develop a reliable and scalable platform that processes significant amounts of flight and weather data, offering valuable insights to our aviation partners.
-
-## Key Features
-
-- **High-Volume Processing**: Efficiently handles 3,000+ daily flight tickets with room for exponential growth.
-- **Real-time Weather Intelligence**: Utilizes advanced APIs and predictive models for accurate weather forecasting.
-- **Intelligent Caching**: Implements a sophisticated Redis-based caching strategy to optimize performance and reduce API calls.
-- **Scalable Architecture**: Leverages Kafka for reliable, high-throughput message processing.
-- **Comprehensive API**: RESTful and GraphQL APIs for flexible data access and integration.
-- **Advanced Analytics**: Machine learning models for pattern recognition and predictive insights.
-- **Multi-region Support**: Designed for global deployment with region-specific optimizations.
-- **Regulatory Compliance**: Adheres to aviation industry standards and data protection regulations.
-- **Robust Security**: Implements industry-leading security practices to protect sensitive data.
-- **Extensible Platform**: Modular design allows for easy integration of new data sources and features.
-
-## System Architecture
-
-Our architecture is designed for high availability, fault tolerance, and horizontal scalability:
+### 3.1 Diagrama de Arquitectura
 
 ```mermaid
 graph TD
-    A[API Gateway] --> B[Load Balancer]
-    B --> C[Flight Service Cluster]
-    B --> D[Weather Service Cluster]
-    B --> E[Analytics Service Cluster]
-    C --> F[Kafka Cluster]
+    A[Cliente] -->|HTTP/WebSocket| B[API Gateway]
+    B --> C[Módulo de Vuelos]
+    B --> D[Módulo del Clima]
+    B --> E[Módulo de Reportes]
+    C --> F[Base de Datos PostgreSQL]
     D --> F
     E --> F
-    F --> G[Data Processing Cluster]
-    G --> H[PostgreSQL Cluster]
-    G --> I[Redis Cluster]
-    J[External Weather API] --> D
-    K[Monitoring & Logging] --> A & C & D & E & G
-    L[CI/CD Pipeline] --> A & C & D & E & G
+    C --> G[Redis Cache]
+    D --> G
+    E --> G
+    C -->|Produce| H[Apache Kafka]
+    D -->|Produce/Consume| H
+    I[Servicio Externo de Clima] -->|HTTP| D
+    J[Prometheus] -->|Scrape| B
+    K[Grafana] -->|Query| J
 ```
 
-## Technology Stack
+### 3.2 Justificación de la Arquitectura
 
-- **Backend Framework**: NestJS 10.x (Node.js)
-- **Language**: TypeScript 5.x
-- **Database**: PostgreSQL 15.x with TimescaleDB extension
-- **Message Broker**: Apache Kafka 3.5.x
-- **Caching**: Redis 7.x
-- **API Protocols**: REST, GraphQL (Apollo Server)
-- **Container Orchestration**: Kubernetes 1.27.x
-- **CI/CD**: GitHub Actions, ArgoCD
-- **Monitoring**: Prometheus, Grafana, ELK Stack
-- **Testing**: Jest, Supertest, k6
-- **Documentation**: Swagger/OpenAPI 3.0, Docusaurus
+La arquitectura de Aether se basa en principios de diseño modular y microservicios, lo que permite:
 
-## Quick Start
+1. **Escalabilidad**: Cada módulo puede escalar independientemente según la demanda.
+2. **Mantenibilidad**: La separación de responsabilidades facilita el mantenimiento y la evolución del sistema.
+3. **Resiliencia**: El uso de Kafka permite un acoplamiento flexible entre componentes, mejorando la tolerancia a fallos.
+4. **Rendimiento**: La implementación de caché con Redis optimiza el acceso a datos frecuentes.
+5. **Observabilidad**: La integración con Prometheus y Grafana proporciona monitoreo en tiempo real y análisis de tendencias.
 
-Get Aether up and running in your local environment:
+## 4. Módulos Principales
 
-```bash
-# Clone the repository
-git clone https://github.com/aether/backend.git
-cd aether-backend
+### 4.1 Módulo de Vuelos
 
-# Install dependencies
-npm install
+**Propósito**: Gestionar toda la información relacionada con vuelos y aeropuertos.
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configurations
+**Componentes Clave**:
+- `FlightController`: Maneja las solicitudes HTTP para operaciones CRUD de vuelos.
+- `FlightService`: Implementa la lógica de negocio para la gestión de vuelos.
+- `FlightTicket` y `Airport`: Entidades que representan los datos principales.
 
-# Start the development environment
-docker-compose up -d
+**Funcionalidades**:
+- Creación, lectura, actualización y eliminación de tickets de vuelo
+- Búsqueda avanzada de vuelos con filtros
+- Gestión de información de aeropuertos
 
-# Run database migrations
-npm run migration:run
-
-# Start the application
-npm run start:dev
-```
-
-Visit `http://localhost:3000/api-docs` for API documentation.
-
-## Installation
-
-For a comprehensive installation guide, including setting up development, staging, and production environments, please refer to our [Installation Guide](docs/installation.md).
-
-## Configuration
-
-Aether uses a combination of environment variables and configuration files to manage different environments and deployments.
-
-Key configuration files:
-- `.env`: Environment-specific variables
-- `config/default.js`: Default configuration
-- `config/production.js`: Production overrides
-
-For a complete list of configuration options and best practices, see our [Configuration Guide](docs/configuration.md).
-
-## Usage
-
-### Starting the Server
-
-```bash
-# Development mode
-npm run start:dev
-
-# Production mode
-npm run build
-npm run start:prod
-```
-
-### Processing Flight Data
-
-1. Ensure your flight data adheres to our [Data Format Specification](docs/data-format-spec.md).
-2. Use the data ingestion API to upload flight data:
-
-```bash
-curl -X POST -H "Content-Type: application/json" \
-     -H "Authorization: Bearer YOUR_API_KEY" \
-     -d @flight-data.json \
-     https://api.aether.com/v1/flights/ingest
-```
-
-3. Monitor the processing status through the `/v1/status` endpoint.
-4. Retrieve weather reports using the `/v1/reports` endpoint.
-
-For detailed API usage examples, refer to our [API Guide](docs/api-guide.md).
-
-## API Reference
-
-Our API is documented using OpenAPI 3.0 specifications. When the server is running, you can access the interactive API documentation at `http://localhost:3000/api-docs`.
-
-For a comprehensive API reference, including request/response examples and authentication details, see our [API Reference Documentation](https://developer.aether.com/api).
-
-## Data Model
-
-### Core Entities
-
-```typescript
-interface FlightTicket {
-  id: string;
-  origin: string;
-  destination: string;
-  airline: string;
-  flightNumber: string;
-  departureTime: Date;
-  arrivalTime: Date;
-  status: FlightStatus;
-}
-
-interface Airport {
-  iataCode: string;
-  name: string;
-  city: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  elevation: number;
-  timezone: string;
-}
-
-interface WeatherData {
-  airportCode: string;
-  timestamp: Date;
-  temperature: number;
-  feelsLike: number;
-  humidity: number;
-  windSpeed: number;
-  windDirection: string;
-  precipitation: number;
-  pressure: number;
-  visibility: number;
-  cloudCover: number;
-  condition: WeatherCondition;
-}
-
-interface FlightWeatherReport {
-  id: string;
-  flightTicketId: string;
-  createdAt: Date;
-  originWeather: WeatherData;
-  destinationWeather: WeatherData;
-  enRouteWeather: WeatherData[];
-}
-```
-
-For a complete data model specification, including enums and relationships, see our [Data Model Documentation](docs/data-model.md).
-
-## Core Functionalities
-
-### Flight Data Ingestion
-
-```typescript
-async function ingestFlightData(data: CreateFlightTicketDto[]): Promise<IngestResult> {
-  const validationResult = await validateFlightData(data);
-  if (!validationResult.isValid) {
-    throw new ValidationError(validationResult.errors);
-  }
-
-  const flightTickets = mapToFlightTickets(data);
-  
-  await this.flightRepository.saveMany(flightTickets);
-
-  await this.kafkaProducer.send({
-    topic: 'flight-data-ingested',
-    messages: flightTickets.map(ticket => ({
-      key: ticket.id,
-      value: JSON.stringify(ticket),
-    })),
-  });
-
-  return {
-    processedCount: flightTickets.length,
-    status: 'success',
-  };
-}
-```
-
-### Weather Data Retrieval with Caching
-
-```typescript
-async function getWeatherForAirport(iataCode: string): Promise<WeatherData> {
-  const cacheKey = `weather:${iataCode}`;
-  
-  try {
-    const cachedData = await this.redisClient.get(cacheKey);
-    if (cachedData) {
-      this.metricsService.incrementCacheHit('weather');
-      return JSON.parse(cachedData) as WeatherData;
-    }
-
-    const weatherData = await this.weatherApiClient.getWeather(iataCode);
-    
-    await this.redisClient.setex(cacheKey, this.config.weatherCacheTTL, JSON.stringify(weatherData));
-    
-    this.metricsService.incrementCacheMiss('weather');
-    return weatherData;
-  } catch (error) {
-    this.logger.error(`Failed to retrieve weather data for ${iataCode}`, error);
-    throw new WeatherDataRetrievalError(iataCode);
-  }
-}
-```
-
-### Report Generation
-
-```typescript
-async function generateWeatherReport(flightId: string): Promise<FlightWeatherReport> {
-  const flight = await this.flightRepository.findById(flightId);
-  if (!flight) {
-    throw new FlightNotFoundError(flightId);
-  }
-
-  const [originWeather, destinationWeather] = await Promise.all([
-    this.getWeatherForAirport(flight.origin),
-    this.getWeatherForAirport(flight.destination),
-  ]);
-
-  const enRouteWeather = await this.calculateEnRouteWeather(flight);
-
-  const report: FlightWeatherReport = {
-    id: generateUUID(),
-    flightTicketId: flight.id,
-    createdAt: new Date(),
-    originWeather,
-    destinationWeather,
-    enRouteWeather,
-  };
-
-  await this.reportRepository.save(report);
-  await this.notificationService.notifyReportGeneration(report);
-
-  return report;
-}
-```
-
-For more detailed documentation on core functionalities, including error handling and performance optimizations, see our [Core Functionalities Guide](docs/core-functionalities.md).
-
-## Database Schema
-
-Our PostgreSQL schema is designed for performance and scalability, utilizing TimescaleDB for efficient time-series data management:
-
-```sql
-CREATE TABLE flight_tickets (
-    id UUID PRIMARY KEY,
-    origin CHAR(3) NOT NULL,
-    destination CHAR(3) NOT NULL,
-    airline CHAR(3) NOT NULL,
-    flight_number VARCHAR(10) NOT NULL,
-    departure_time TIMESTAMPTZ NOT NULL,
-    arrival_time TIMESTAMPTZ NOT NULL,
-    status flight_status NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE airports (
-    iata_code CHAR(3) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    city VARCHAR(50) NOT NULL,
-    country VARCHAR(50) NOT NULL,
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(11, 8) NOT NULL,
-    elevation INTEGER NOT NULL,
-    timezone VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE weather_data (
-    id UUID PRIMARY KEY,
-    airport_code CHAR(3) NOT NULL REFERENCES airports(iata_code),
-    timestamp TIMESTAMPTZ NOT NULL,
-    temperature DECIMAL(5, 2) NOT NULL,
-    feels_like DECIMAL(5, 2) NOT NULL,
-    humidity INTEGER NOT NULL,
-    wind_speed DECIMAL(5, 2) NOT NULL,
-    wind_direction VARCHAR(3) NOT NULL,
-    precipitation DECIMAL(5, 2) NOT NULL,
-    pressure INTEGER NOT NULL,
-    visibility DECIMAL(6, 2) NOT NULL,
-    cloud_cover INTEGER NOT NULL,
-    condition weather_condition NOT NULL
-);
-
-SELECT create_hypertable('weather_data', 'timestamp');
-
-CREATE TABLE flight_weather_reports (
-    id UUID PRIMARY KEY,
-    flight_ticket_id UUID NOT NULL REFERENCES flight_tickets(id),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    origin_weather_id UUID NOT NULL REFERENCES weather_data(id),
-    destination_weather_id UUID NOT NULL REFERENCES weather_data(id)
-);
-
-CREATE INDEX idx_flight_tickets_departure_time ON flight_tickets(departure_time);
-CREATE INDEX idx_weather_data_airport_timestamp ON weather_data(airport_code, timestamp);
-```
-
-For complete schema definitions, including indexes, constraints, and TimescaleDB-specific optimizations, refer to our [Database Schema Documentation](docs/database-schema.md).
-
-## Kafka Integration
-
-Aether leverages Apache Kafka for reliable, scalable, and high-throughput data streaming. Our Kafka integration is crucial for decoupling data ingestion from processing and enabling real-time analytics.
-
-### Key Kafka Topics
-
-1. `flight-data-ingested`: New flight data ready for processing
-2. `weather-data-requested`: Requests for weather data retrieval
-3. `weather-data-retrieved`: Completed weather data retrievals
-4. `report-generation-requested`: Requests for report generation
-5. `report-generation-completed`: Completed report generations
-
-### Kafka Producer Example
-
+**Ejemplo de Código**:
 ```typescript
 @Injectable()
-class FlightDataProducer {
-  constructor(private readonly kafkaClient: KafkaClient) {}
-
-  async publishFlightData(flightTicket: FlightTicket): Promise<void> {
-    try {
-      await this.kafkaClient.produce({
-        topic: 'flight-data-ingested',
-        messages: [{
-          key: flightTicket.id,
-          value: JSON.stringify(flightTicket),
-          headers: {
-            'content-type': 'application/json',
-            'version': '1.0'
-          }
-        }]
-      });
-      this.logger.info(`Published flight data for flight ${flightTicket.flightNumber}`);
-    } catch (error) {
-      this.logger.error(`Failed to publish flight data: ${error.message}`, error);
-      throw new KafkaPublishError('Failed to publish flight data');
-    }
-  }
-}
-```
-
-### Kafka Consumer Example
-
-```typescript
-@Injectable()
-class WeatherDataConsumer {
-  @KafkaListener('weather-data-requested')
-  async handleWeatherDataRequest(message: KafkaMessage): Promise<void> {
-    const airportCode = message.value.toString();
-    
-    try {
-      const weatherData = await this.weatherService.getWeatherForAirport(airportCode);
-      await this.weatherDataProducer.publishWeatherData(weatherData);
-    } catch (error) {
-      this.logger.error(`Failed to process weather data request: ${error.message}`, error);
-      // Implement retry logic or dead-letter queue here
-    }
-  }
-}
-```
-
-For more details on our Kafka integration, including configuration, monitoring, and best practices, see our [Kafka Integration Guide](docs/kafka-integration.md).
-
-## Redis Caching Strategy
-
-Aether implements a sophisticated caching strategy using Redis to optimize performance and reduce load on external weather APIs.
-
-### Key Features
-
-1. **Multi-level Caching**: Implements both local (in-memory) and distributed (Redis) caching for optimal performance.
-2. **Time-based Expiration**: Cache entries automatically expire after a configurable TTL to ensure data freshness.
-3. **Cache Invalidation**: Supports manual and automatic cache invalidation based on events or data updates.
-4. **Cache Warming**: Proactively warms up the cache for frequently accessed data.
-5. **Cache Compression**: Implements LZ4 compression for efficient storage and network transfer.
-
-### Caching Logic Example
-
-```typescript
-class WeatherDataCache {
+export class FlightService {
   constructor(
-    private readonly redisClient: Redis,
-    private readonly localCache: LRUCache<string, WeatherData>,
-    private readonly config: CacheConfig
+    @InjectRepository(FlightTicket)
+    private readonly flightTicketRepository: Repository<FlightTicket>,
+    private readonly airportService: AirportService,
+    private readonly flightDataProducer: FlightDataProducer,
+    private readonly cacheService: CacheService,
   ) {}
 
-  async get(airportCode: string): Promise<WeatherData | null> {
-    // Check local cache first
-    const localData = this.localCache.get(airportCode);
-    if (localData) {
-      this.metricsService.incrementLocalCacheHit();
-      return localData;
-    }
-
-    // Check Redis cache
-    const redisData = await this.redisClient.get(`weather:${airportCode}`);
-    if (redisData) {
-      const weatherData = this.deserializeWeatherData(redisData);
-      this.localCache.set(airportCode, weatherData);
-      this.metricsService.incrementRedisCacheHit();
-      return weatherData;
-    }
-
-    return null;
+  async createFlightTicket(createFlightTicketDto: CreateFlightTicketDto): Promise<FlightTicketDto> {
+    // Implementación
   }
 
-  async set(airportCode: string, weatherData: WeatherData): Promise<void> {
-    const serializedData = this.serializeWeatherData(weatherData);
-    
-    await this.redisClient.setex(
-      `weather:${airportCode}`,
-      this.config.weatherCacheTTL,
-      serializedData
-    );
-
-    this.localCache.set(airportCode, weatherData);
-  }
-
-  private serializeWeatherData(data: WeatherData): string {
-    // Implement serialization logic (e.g., Protocol Buffers)
-  }
-
-  private deserializeWeatherData(data: string): WeatherData {
-    // Implement deserialization logic
+  async searchFlights(origin?: string, destination?: string): Promise<FlightTicketDto[]> {
+    // Implementación
   }
 }
 ```
 
-For a comprehensive overview of our caching strategy, including cache warming, invalidation policies, and monitoring, refer to our [Caching Strategy Documentation](docs/caching-strategy.md).
+### 4.2 Módulo del Clima
 
-## Security Measures
+**Propósito**: Obtener, procesar y proporcionar datos meteorológicos precisos.
 
-Security is a top priority in Aether. We implement a multi-layered security approach to protect our system and data:
+**Componentes Clave**:
+- `WeatherController`: Gestiona las solicitudes de datos meteorológicos.
+- `WeatherService`: Lógica central para procesamiento de datos meteorológicos.
+- `WeatherApiService`: Interactúa con APIs externas de clima.
 
-1. **Authentication and Authorization**:
-   - JWT-based authentication for API access
-   - Role-Based Access Control (RBAC) for fine-grained permissions
-   - OAuth 2.0 integration for third-party authentication
+**Funcionalidades**:
+- Obtención de datos meteorológicos en tiempo real
+- Caché de datos meteorológicos para mejorar el rendimiento
+- Actualización periódica de datos meteorológicos
 
-2. **Data Encryption**:
-   - TLS 1.3 for all data in transit
-   - AES-256 encryption for sensitive data at rest
-   - Key rotation and management using AWS KMS
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class WeatherService {
+  constructor(
+    @InjectRepository(WeatherData)
+    private weatherDataRepository: Repository<WeatherData>,
+    private weatherApiService: WeatherApiService,
+    private redisService: RedisService,
+    private weatherDataProducer: WeatherDataProducer
+  ) {}
 
-3. **API Security**:
-   - Rate limiting and throttling to prevent abuse
-   - Input validation and sanitization to prevent injection attacks
-   - OWASP Top 10 compliance
+  async getWeatherForAirport(iataCode: string): Promise<WeatherData> {
+    // Implementación
+  }
 
-4. **Infrastructure Security**:
-   - Network segmentation and firewalls
-   - Regular vulnerability scans and penetration testing
-   - Principle of least privilege for all system components
-
-5. **Compliance**:
-   - GDPR compliance for data protection
-   - SOC 2 Type II certified processes
-   - Regular security audits and assessments
-
-For detailed security documentation, including our security policies and best practices, see our [Security Guide](docs/security.md).
-
-## Scalability and Performance
-
-Aether is designed to scale horizontally to handle increasing loads:
-
-1. **Microservices Architecture**: Allows independent scaling of components.
-2. **Database Sharding**: Implements PostgreSQL sharding for distributing data across multiple nodes.
-3. **Caching Strategy**: Multi-level caching reduces database load and API calls.
-4. **Load Balancing**: Utilizes Kubernetes for intelligent traffic distribution.
-5. **Asynchronous Processing**: Kafka-based event processing for non-blocking operations.
-6. **CDN Integration**: Global CDN for static assets and API caching.
-
-Performance optimization techniques:
-
-- Query optimization and database indexing
-- Lazy loading and pagination for large datasets
-- Compression of API responses
-- Resource pooling (e.g., database connections, HTTP clients)
-
-For benchmarks and performance tuning guidelines, see our [Performance Optimization Guide](docs/performance.md).
-
-## Monitoring and Observability
-
-Aether implements comprehensive monitoring and observability to ensure system health and performance:
-
-1. **Metrics Collection**: 
-   - Prometheus for system and application metrics
-   - Custom metrics for business KPIs
-
-2. **Logging**:
-   - Centralized logging with ELK Stack (Elasticsearch, Logstash, Kibana)
-   - Structured logging for easy querying and analysis
-
-3. **Tracing**:
-   - Distributed tracing with Jaeger
-   - Performance bottleneck identification
-
-4. **Alerting**:
-   - PagerDuty integration for incident management
-   - Custom alert rules based on SLOs/SLIs
-
-5. **Dashboards**:
-   - Grafana dashboards for real-time system overview
-   - Custom dashboards for business metrics
-
-For details on setting up monitoring and creating custom dashboards, refer to our [Monitoring and Observability Guide](docs/monitoring.md).
-
-## Disaster Recovery and High Availability
-
-Aether is designed for high availability and rapid disaster recovery:
-
-1. **Multi-region Deployment**: Active-active setup across multiple AWS regions.
-2. **Automated Failover**: Kubernetes-managed container orchestration for service resilience.
-3. **Data Replication**: Real-time data replication across regions using PostgreSQL logical replication.
-4. **Backup Strategy**: 
-   - Daily full backups
-   - Point-in-time recovery with continuous archiving
-   - Regular backup restoration drills
-5. **Chaos Engineering**: Proactive resilience testing using tools like Chaos Monkey.
-
-For a detailed overview of our HA setup and DR procedures, see our [Disaster Recovery Playbook](docs/disaster-recovery.md).
-
-## Development Workflow
-
-We follow a GitFlow-inspired branching strategy:
-
-1. `main`: Production-ready code
-2. `develop`: Integration branch for feature development
-3. `feature/*`: Individual feature branches
-4. `release/*`: Release preparation branches
-5. `hotfix/*`: Emergency fixes for production
-
-Key development practices:
-
-- Code reviews required for all PRs
-- CI/CD pipelines for automated testing and deployment
-- Semantic versioning for releases
-
-For more details on our development process, coding standards, and best practices, see our [Development Guide](docs/development.md).
-
-## Testing Strategy
-
-Aether employs a comprehensive testing strategy:
-
-1. **Unit Testing**: Jest for isolated function and component testing
-2. **Integration Testing**: API and service integration tests
-3. **End-to-End Testing**: Automated E2E tests using Cypress
-4. **Performance Testing**: Load and stress testing with k6
-5. **Security Testing**: Regular penetration testing and vulnerability scans
-6. **Chaos Testing**: Simulated failure scenarios for resilience testing
-
-```bash
-# Run all tests
-npm run test
-
-# Run unit tests
-npm run test:unit
-
-# Run integration tests
-npm run test:integration
-
-# Run E2E tests
-npm run test:e2e
-
-# Generate coverage report
-npm run test:coverage
+  async updateWeatherData(weatherDataDto: WeatherDataDto): Promise<WeatherData> {
+    // Implementación
+  }
+}
 ```
 
-For detailed testing guidelines and best practices, refer to our [Testing Guide](docs/testing.md).
+### 4.3 Módulo de Reportes
 
-## Deployment Guide
+**Propósito**: Generar informes detallados combinando datos de vuelos y meteorológicos.
 
-Aether uses a GitOps approach for deployments:
+**Componentes Clave**:
+- `ReportController`: Maneja solicitudes para generación y recuperación de informes.
+- `ReportService`: Lógica para la creación de informes.
+- `FlightWeatherReport`: Entidad que representa un informe.
 
-1. **Containerization**: Docker images for all services
-2. **Orchestration**: Kubernetes for container orchestration
-3. **Configuration Management**: Helm charts for Kubernetes resources
-4. **Continuous Deployment**: ArgoCD for GitOps-based deployments
-5. **Blue/Green Deployments**: Zero-downtime updates
+**Funcionalidades**:
+- Generación de informes bajo demanda
+- Programación de generación automática de informes
+- Almacenamiento y recuperación de informes históricos
 
-Deployment commands:
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class ReportService {
+  constructor(
+    @InjectRepository(FlightWeatherReport)
+    private flightWeatherReportRepository: Repository<FlightWeatherReport>,
+    private flightService: FlightService,
+    private weatherService: WeatherService,
+  ) {}
 
-```bash
-# Build Docker image
-docker build -t aether-backend:latest .
-
-# Push to container registry
-docker push aether-registry.azurecr.io/aether-backend:latest
-
-# Deploy to Kubernetes
-kubectl apply -f k8s/
-
-# Rollback deployment
-kubectl rollout undo deployment/aether-backend
+  async generateReport(flightId: string): Promise<FlightWeatherReportDto> {
+    // Implementación
+  }
+}
 ```
 
-For a step-by-step deployment guide and production checklist, see our [Deployment Documentation](docs/deployment.md).
+## 5. Integración con Servicios Externos
 
-## Troubleshooting
+### Apache Kafka
 
-Common issues and their solutions:
+Aether utiliza Apache Kafka para el procesamiento de eventos y la comunicación asíncrona entre servicios.
 
-1. **API Rate Limiting**: Implement exponential backoff in clients
-2. **Database Connection Issues**: Check connection pool settings and network security groups
-3. **Cache Inconsistencies**: Verify TTL settings and implement cache invalidation hooks
+**Justificación**: Kafka proporciona un sistema de mensajería distribuido de alto rendimiento que permite el desacoplamiento de componentes y el procesamiento de eventos en tiempo real.
 
-For a comprehensive list of common issues and troubleshooting steps, refer to our [Troubleshooting Guide](docs/troubleshooting.md).
+**Implementación**:
+- `KafkaModule`: Configura la conexión y los productores/consumidores de Kafka.
+- `WeatherDataProducer` y `FlightDataProducer`: Publican eventos a temas específicos de Kafka.
+- `WeatherDataConsumer`: Consume y procesa eventos de datos meteorológicos.
 
-## Research and Innovation
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class WeatherDataProducer implements OnModuleInit, OnModuleDestroy {
+  private producer: KafkaJS.Producer;
 
-At Aether, we're committed to staying at the forefront of technology:
+  constructor(private configService: ConfigService) {
+    // Inicialización
+  }
 
-1. **Machine Learning Integration**: Exploring predictive models for weather pattern analysis
-2. **Blockchain for Data Integrity**: Researching blockchain technologies for immutable weather records
-3. **Edge Computing**: Investigating edge processing for reduced latency in weather data collection
-4. **Quantum Computing**: Long-term research into quantum algorithms for complex weather simulations
+  async publishWeatherData(weatherData: WeatherData): Promise<void> {
+    // Implementación
+  }
+}
+```
 
-For details on our R&D initiatives and innovation process, see our [Research and Innovation Roadmap](docs/research-roadmap.md).
+### Servicio Externo de Clima
 
-## Compliance and Standards
+Aether se integra con servicios externos de pronóstico del tiempo para obtener datos meteorológicos actualizados.
 
-Aether adheres to industry standards and regulations:
+**Implementación**:
+- `WeatherApiService`: Gestiona las llamadas a la API externa del servicio meteorológico.
 
-- ISO 27001 Information Security Management
-- GDPR and CCPA compliant data handling
-- WCAG 2.1 AA for web accessibility
-- FAA and EASA guidelines for aviation weather data
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class WeatherApiService {
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {}
 
-For our full list of certifications and compliance documentation, see our [Compliance Center](docs/compliance.md).
+  async fetchWeatherData(iataCode: string): Promise<WeatherData> {
+    // Implementación
+  }
+}
+```
 
-## Contributing
+## 6. Gestión de Datos
 
-We welcome contributions from the community. Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+### 6.1 Modelo de Datos
 
-## Code of Conduct
+Aether utiliza TypeORM como ORM (Object-Relational Mapping) para interactuar con la base de datos PostgreSQL.
 
-Aether is committed to fostering an inclusive and welcoming community. Please read and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
+**Entidades Principales**:
+- `FlightTicket`: Representa un ticket de vuelo.
+- `Airport`: Almacena información sobre aeropuertos.
+- `WeatherData`: Contiene datos meteorológicos para un aeropuerto en un momento específico.
+- `FlightWeatherReport`: Representa un informe meteorológico para un vuelo específico.
 
-## License
+**Diagrama de Entidad-Relación**:
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+```mermaid
+erDiagram
+    FLIGHT_TICKET ||--o{ AIRPORT : "origin/destination"
+    FLIGHT_TICKET ||--o{ FLIGHT_WEATHER_REPORT : has
+    AIRPORT ||--o{ WEATHER_DATA : has
+    FLIGHT_WEATHER_REPORT ||--|| WEATHER_DATA : includes
 
-## Acknowledgments
+    FLIGHT_TICKET {
+        string id PK
+        string origin FK
+        string destination FK
+        string airline
+        string flightNum
+        datetime createdAt
+        datetime updatedAt
+    }
 
-- OpenWeatherMap for providing weather data APIs
-- The NestJS team for their excellent framework
-- Our open-source contributors and the broader developer community
+    AIRPORT {
+        string iataCode PK
+        string name
+        float latitude
+        float longitude
+        string city
+        string country
+    }
 
-## Support and Contact
+    WEATHER_DATA {
+        string id PK
+        string airportCode FK
+        datetime timestamp
+        float temperature
+        float humidity
+        float windSpeed
+        string windDirection
+        string condition
+    }
 
-For support requests, please open an issue on our [GitHub Issues](https://github.com/aether/backend/issues) page or contact our support team at support@aether.com.
+    FLIGHT_WEATHER_REPORT {
+        string id PK
+        string flightId FK
+        datetime createdAt
+        json originWeather
+        json destinationWeather
+        json reportData
+    }
+```
 
-For business inquiries, please contact sales@aether.com.
+### 6.2 Estrategia de Caché
 
-## Changelog
+Aether implementa una estrategia de caché utilizando Redis para mejorar el rendimiento y reducir la carga en la base de datos.
 
-For a detailed changelog of each version, please see our [Changelog](CHANGELOG.md).
+**Justificación**: Redis proporciona un almacenamiento en memoria de alta velocidad, ideal para cachear datos frecuentemente accedidos como información meteorológica reciente.
 
----
+**Implementación**:
+- `CacheService`: Proporciona métodos para interactuar con Redis.
+- Uso de caché en servicios críticos como `WeatherService` y `FlightService`.
 
-© 2024 Aether, Inc. All Rights Reserved.
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class CacheService {
+  constructor(private readonly redisService: RedisService) {}
+
+  async getFlightTicket(id: string): Promise<FlightTicketDto | null> {
+    // Implementación
+  }
+
+  async setFlightTicket(id: string, ticket: FlightTicketDto, ttl: number = 3600): Promise<void> {
+    // Implementación
+  }
+}
+```
+
+## 7. API y Endpoints
+
+Aether expone una API RESTful para interactuar con el sistema. Los principales endpoints incluyen:
+
+### Vuelos
+- `GET /flights`: Obtener lista de vuelos
+- `POST /flights`: Crear un nuevo vuelo
+- `GET /flights/:id`: Obtener detalles de un vuelo específico
+- `PUT /flights/:id`: Actualizar un vuelo
+- `DELETE /flights/:id`: Eliminar un vuelo
+
+### Clima
+- `GET /weather/:iataCode`: Obtener datos meteorológicos para un aeropuerto
+
+### Reportes
+- `POST /reports/:flightId`: Generar un informe meteorológico para un vuelo
+- `GET /reports/:id`: Obtener un informe específico
+
+**Documentación de API**: 
+La documentación detallada de la API se genera automáticamente utilizando Swagger y está disponible en `/api-docs` cuando la aplicación está en ejecución.
+
+## 8. Seguridad y Autenticación
+
+Aether implementa múltiples capas de seguridad para proteger los datos y garantizar el acceso autorizado.
+
+### Autenticación
+
+Se utiliza autenticación basada en JWT (JSON Web Tokens) para securizar el acceso a la API.
+
+**Implementación**:
+- Middleware de autenticación que valida los tokens JWT en las solicitudes entrantes.
+- Generación de tokens JWT al iniciar sesión.
+
+### Autorización
+
+El sistema implementa un sistema de roles y permisos para controlar el acceso a diferentes funcionalidades.
+
+**Implementación**:
+- Decoradores personalizados para verificar roles y permisos en los controladores.
+- Almacenamiento de roles de usuario en la base de datos.
+
+### Protección contra Ataques
+
+- **Rate Limiting**: Se implementa limitación de tasa para prevenir abusos de la API.
+- **HTTPS**: Todas las comunicaciones
+Ciertamente, continuaré desde donde me quedé en la sección de Seguridad y Autenticación.
+
+### Protección contra Ataques (continuación)
+
+- **HTTPS**: Todas las comunicaciones se realizan sobre HTTPS para garantizar la encriptación de datos en tránsito.
+- **Validación de Entrada**: Se implementa una validación rigurosa de todas las entradas de usuario para prevenir ataques de inyección y XSS.
+- **Encriptación de Datos Sensibles**: Los datos sensibles se almacenan encriptados en la base de datos.
+
+**Ejemplo de Código (Middleware de Autenticación)**:
+```typescript
+@Injectable()
+export class JwtAuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException();
+    }
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      request['user'] = payload;
+    } catch {
+      throw new UnauthorizedException();
+    }
+    return true;
+  }
+
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
+}
+```
+
+## 9. Monitoreo y Observabilidad
+
+Aether implementa un sistema robusto de monitoreo y observabilidad para garantizar la salud y el rendimiento del sistema.
+
+### Prometheus
+
+Se utiliza Prometheus para la recolección y almacenamiento de métricas.
+
+**Justificación**: Prometheus proporciona un sistema potente y flexible para la recolección de métricas, con capacidades de alerta y una amplia gama de exportadores.
+
+**Implementación**:
+- `PrometheusModule`: Configura la integración con Prometheus.
+- `PrometheusService`: Define y expone métricas personalizadas.
+
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class PrometheusService {
+  private readonly messagesProcessed: Counter;
+
+  constructor() {
+    this.messagesProcessed = new Counter({
+      name: 'kafka_messages_processed_total',
+      help: 'Total number of Kafka messages processed',
+      labelNames: ['topic'],
+    });
+  }
+
+  incrementMessageProcessed(topic: string): void {
+    this.messagesProcessed.labels(topic).inc();
+  }
+}
+```
+
+### Logging
+
+Se implementa un sistema de logging estructurado para facilitar el análisis y la depuración.
+
+**Implementación**:
+- Utilización de Winston para logging estructurado.
+- Integración con servicios de log aggregation como ELK Stack (Elasticsearch, Logstash, Kibana) para análisis centralizado de logs.
+
+**Ejemplo de Código**:
+```typescript
+export class Logger implements LoggerService {
+  private logger: winston.Logger;
+
+  constructor(context?: string) {
+    this.logger = winston.createLogger({
+      level: process.env.LOG_LEVEL || 'info',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      ),
+      defaultMeta: { service: 'aether-backend', context },
+      transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
+      ]
+    });
+  }
+
+  log(message: string) {
+    this.logger.info(message);
+  }
+
+  error(message: string, trace: string) {
+    this.logger.error(message, { trace });
+  }
+}
+```
+
+## 10. Comunicación en Tiempo Real
+
+Aether utiliza WebSockets para proporcionar actualizaciones en tiempo real a los clientes conectados.
+
+**Justificación**: WebSockets permiten una comunicación bidireccional en tiempo real entre el servidor y los clientes, ideal para notificaciones instantáneas sobre cambios en vuelos o condiciones meteorológicas.
+
+**Implementación**:
+- `WebSocketService`: Maneja las conexiones y comunicaciones por WebSocket.
+- `NotificationService`: Envía notificaciones a los clientes conectados.
+
+**Ejemplo de Código**:
+```typescript
+@Injectable()
+export class WebSocketService {
+  private server: Server;
+
+  setServer(server: Server) {
+    this.server = server;
+    this.setupConnectionHandlers();
+  }
+
+  private setupConnectionHandlers() {
+    this.server.on('connection', (socket: Socket) => {
+      console.log(`Client connected: ${socket.id}`);
+
+      socket.on('disconnect', () => {
+        console.log(`Client disconnected: ${socket.id}`);
+      });
+    });
+  }
+
+  sendToAll(event: string, data: any) {
+    this.server.emit(event, data);
+  }
+}
+```
+
+## 11. Configuración y Entornos
+
+Aether utiliza un sistema de configuración basado en archivos y variables de entorno para manejar diferentes entornos (desarrollo, pruebas, producción).
+
+**Implementación**:
+- Uso de `@nestjs/config` para cargar y gestionar la configuración.
+- Archivos de configuración específicos para diferentes aspectos del sistema (base de datos, Kafka, Redis, etc.).
+
+**Ejemplo de Código (database.config.ts)**:
+```typescript
+import { registerAs } from '@nestjs/config';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+
+export default registerAs('database', (): TypeOrmModuleOptions => ({
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT, 10) || 5432,
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  entities: ['dist/**/*.entity{.ts,.js}'],
+  synchronize: process.env.NODE_ENV !== 'production',
+  logging: process.env.NODE_ENV === 'development',
+}));
+```
+
+## 12. Pruebas y Calidad
+
+Aether implementa una estrategia integral de pruebas para garantizar la calidad y confiabilidad del sistema.
+
+### Tipos de Pruebas
+
+1. **Pruebas Unitarias**: Prueban componentes individuales de forma aislada.
+2. **Pruebas de Integración**: Verifican la interacción correcta entre diferentes módulos.
+3. **Pruebas End-to-End (E2E)**: Prueban flujos completos de la aplicación.
+
+**Implementación**:
+- Uso de Jest como framework principal de pruebas.
+- Implementación de pruebas unitarias para servicios y controladores.
+- Pruebas de integración para verificar la interacción con servicios externos y base de datos.
+- Pruebas E2E utilizando Supertest para simular solicitudes HTTP.
+
+**Ejemplo de Código (Prueba Unitaria)**:
+```typescript
+describe('FlightService', () => {
+  let service: FlightService;
+  let repository: MockType<Repository<FlightTicket>>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        FlightService,
+        { provide: getRepositoryToken(FlightTicket), useFactory: repositoryMockFactory },
+      ],
+    }).compile();
+
+    service = module.get<FlightService>(FlightService);
+    repository = module.get(getRepositoryToken(FlightTicket));
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('should create a flight ticket', async () => {
+    const flightTicketDto = { /* ... */ };
+    repository.save.mockReturnValue(flightTicketDto);
+    expect(await service.createFlightTicket(flightTicketDto)).toEqual(flightTicketDto);
+  });
+});
+```
+
+## 13. Despliegue y Operaciones
+
+Aether está diseñado para ser desplegado en contenedores Docker, facilitando la implementación y escalado en diferentes entornos.
+
+### Containerización
+
+- Uso de Docker para empaquetar la aplicación y sus dependencias.
+- Dockerfile optimizado para minimizar el tamaño de la imagen y mejorar la seguridad.
+
+**Ejemplo de Dockerfile**:
+```dockerfile
+FROM node:14-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:14-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3030
+CMD ["node", "dist/main"]
+```
+
+### Orquestación
+
+- Uso de Kubernetes para orquestación de contenedores en producción.
+- Implementación de Helm charts para facilitar el despliegue y la gestión de la aplicación en Kubernetes.
+
+### CI/CD
+
+- Implementación de pipelines de CI/CD utilizando GitLab CI o GitHub Actions.
+- Automatización de pruebas, construcción de imágenes Docker y despliegue en diferentes entornos.
+
+**Ejemplo de Pipeline de GitLab CI**:
+```yaml
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  script:
+    - npm ci
+    - npm run test
+
+build:
+  stage: build
+  script:
+    - docker build -t aether-backend:$CI_COMMIT_SHA .
+    - docker push aether-backend:$CI_COMMIT_SHA
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl set image deployment/aether-backend aether-backend=aether-backend:$CI_COMMIT_SHA
+```
+
+## 14. Rendimiento y Optimización
+
+Aether implementa varias estrategias para optimizar el rendimiento y la eficiencia del sistema:
+
+1. **Caché Distribuida**: Uso de Redis para cachear datos frecuentemente accedidos, reduciendo la carga en la base de datos.
+2. **Indexación de Base de Datos**: Implementación de índices apropiados en PostgreSQL para optimizar las consultas frecuentes.
+3. **Procesamiento Asíncrono**: Uso de Kafka para procesar tareas pesadas de manera asíncrona, mejorando los tiempos de respuesta de la API.
+4. **Optimización de Consultas**: Uso de consultas optimizadas y eager loading en TypeORM para reducir el número de consultas a la base de datos.
+5. **Compresión de Respuestas**: Implementación de compresión gzip para respuestas HTTP, reduciendo el ancho de banda necesario.
+
+**Ejemplo de Optimización de Consulta**:
+```typescript
+@Injectable()
+export class FlightService {
+  async getFlightWithDetails(id: string): Promise<FlightTicket> {
+    return this.flightTicketRepository.createQueryBuilder('flight')
+      .leftJoinAndSelect('flight.originAirport', 'origin')
+      .leftJoinAndSelect('flight.destinationAirport', 'destination')
+      .where('flight.id = :id', { id })
+      .getOne();
+  }
+}
+```
+
+## 15. Consideraciones Futuras
+
+Para el desarrollo futuro de Aether, se consideran las siguientes áreas de mejora y expansión:
+
+1. **Implementación de GraphQL**: Para proporcionar una API más flexible y eficiente.
+2. **Integración con Machine Learning**: Para mejorar las predicciones meteorológicas y la optimización de rutas.
+3. **Expansión de Microservicios**: Dividir el sistema en microservicios más granulares para mejorar la escalabilidad y el mantenimiento.
+4. **Implementación de Event Sourcing**: Para mejorar la trazabilidad y permitir reconstrucción de estados pasados del sistema.
+5. **Internacionalización**: Soporte para múltiples idiomas en la interfaz de usuario y los informes.
+
+## 16. Glosario
+
+- **IATA**: Asociación de Transporte Aéreo Internacional
+- **JWT**: JSON Web Token
+- **ORM**: Object-Relational Mapping
+- **API**: Application Programming Interface
+- **WebSocket**: Protocolo de comunicación bidireccional en tiempo real
+- **Kafka**: Plataforma de streaming de eventos distribuidos
+- **Redis**: Sistema de almacenamiento de estructura de datos en memoria
+- **Prometheus**: Sistema de monitoreo y alerta de código abierto
+
+## 17. Referencias y Bibliografía
+
+1. NestJS Documentation. (2021). Retrieved from https://docs.nestjs.com/
+2. TypeORM Documentation. (2021). Retrieved from https://typeorm.io/
+3. Apache Kafka Documentation. (2021). Retrieved from https://kafka.apache.org/documentation/
+4. Redis Documentation. (2021). Retrieved from https://redis.io/documentation
+5. Prometheus Documentation. (2021). Retrieved from https://prometheus.io/docs/introduction/overview/
+6. Martin Fowler. (2014). Microservices. Retrieved from https://martinfowler.com/articles/microservices.html
+7. Chris Richardson. (2018). Microservices Patterns. Manning Publications.
+8. Nygard, M. T. (2007). Release It!: Design and Deploy Production-Ready Software. Pragmatic Bookshelf.
+9. Newman, S. (2015). Building Microservices: Designing Fine-Grained Systems. O'Reilly Media.
+10. Kleppmann, M. (2017). Designing Data-Intensive Applications. O'Reilly Media.
