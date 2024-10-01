@@ -17,26 +17,22 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
-
-  // Habilitar CORS
   const corsEnabled = configService.get<boolean>('app.cors.enabled');
   const corsOrigin = configService.get<string | string[]>('app.cors.origin');
 
-  if (corsEnabled !== false) {  // Si no está explícitamente deshabilitado
+  if (corsEnabled !== false) {
     app.enableCors({
-      origin: corsOrigin || '*',  // Usa '*' si no se especifica un origen
+      origin: corsOrigin || '*', 
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       credentials: true,
       allowedHeaders: 'Content-Type, Accept, Authorization',
     });
   }
 
-  // Usar pipes de validación y filtros globales
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Configurar Swagger
   const config = new DocumentBuilder()
     .setTitle('Aether API')
     .setDescription('The Aether Flight Weather Information System API')
@@ -50,7 +46,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   app.getHttpAdapter().get('/api-json', (req, res) => res.json(document));
 
-  // Configurar WebSockets
+
   const webSocketService = app.get(WebSocketService);
   app.useWebSocketAdapter(new IoAdapter(app));
 
