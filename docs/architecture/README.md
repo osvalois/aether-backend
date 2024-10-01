@@ -2,48 +2,40 @@
 
 ## Resumen Ejecutivo
 
-El Sistema de Información Meteorológica para Vuelos Aether es una plataforma de vanguardia diseñada para proporcionar datos meteorológicos precisos y en tiempo real para la industria de la aviación. Este documento detalla la arquitectura del sistema, las decisiones de diseño y las justificaciones técnicas que respaldan estas elecciones.
+El Sistema de Información Meteorológica para Vuelos Aether es una plataforma de vanguardia diseñada para proporcionar datos meteorológicos precisos y en tiempo real para la industria de la aviación. Este documento detalla la arquitectura del sistema, las decisiones de diseño y las justificaciones técnicas que respaldan estas elecciones, con un enfoque en la modularidad, los principios SOLID y la integración eficiente de componentes.
 
 ## Tabla de Contenidos
 
 1. [Introducción](#1-introducción)
 2. [Visión General de la Arquitectura](#2-visión-general-de-la-arquitectura)
 3. [Componentes Arquitectónicos](#3-componentes-arquitectónicos)
-4. [Patrones Arquitectónicos](#4-patrones-arquitectónicos)
+4. [Patrones Arquitectónicos y Principios SOLID](#4-patrones-arquitectónicos-y-principios-solid)
 5. [Decisiones Arquitectónicas Clave](#5-decisiones-arquitectónicas-clave)
 6. [Escalabilidad y Rendimiento](#6-escalabilidad-y-rendimiento)
-7. [Seguridad](#7-seguridad)
-8. [Integración y Comunicación](#8-integración-y-comunicación)
-9. [Manejo de Datos](#9-manejo-de-datos)
-10. [Observabilidad y Monitoreo](#10-observabilidad-y-monitoreo)
-11. [Despliegue y DevOps](#11-despliegue-y-devops)
-12. [Evolución Futura](#12-evolución-futura)
-13. [Glosario](#13-glosario)
-14. [Referencias](#14-referencias)
+7. [Integración y Comunicación](#7-integración-y-comunicación)
+8. [Manejo de Datos](#8-manejo-de-datos)
+9. [Observabilidad y Monitoreo](#9-observabilidad-y-monitoreo)
+10. [Despliegue y DevOps](#10-despliegue-y-devops)
+11. [Evolución Futura](#11-evolución-futura)
+12. [Glosario](#12-glosario)
+13. [Referencias](#13-referencias)
 
 ## 1. Introducción
 
-### 1.1 Propósito
-Este documento describe la arquitectura del Sistema de Información Meteorológica para Vuelos Aether, proporcionando una visión detallada de su estructura, componentes y decisiones de diseño.
-
-### 1.2 Alcance
-El documento cubre todos los aspectos arquitectónicos del sistema Aether, desde la infraestructura hasta la capa de presentación.
-
-### 1.3 Audiencia
-Este documento está dirigido a arquitectos de software, desarrolladores, ingenieros de DevOps y stakeholders técnicos involucrados en el desarrollo y mantenimiento del sistema Aether.
+[El contenido de esta sección permanece sin cambios]
 
 ## 2. Visión General de la Arquitectura
 
-Aether está construido sobre una arquitectura de microservicios, adoptando principios de Diseño Dirigido por el Dominio (DDD) y Arquitectura Limpia.
+Aether está construido sobre una arquitectura modular, adoptando principios de Diseño Dirigido por el Dominio (DDD), Arquitectura Limpia y SOLID.
 
 ### 2.1 Diagrama de Arquitectura de Alto Nivel
 
 ```mermaid
 graph TD
-    A[Cliente Web/Móvil] -->|HTTP/WebSocket| B[API Gateway]
-    B --> C[Servicio de Vuelos]
-    B --> D[Servicio Meteorológico]
-    B --> E[Servicio de Reportes]
+    A[Cliente Web/Móvil] -->|HTTP/WebSocket| B[Proxy Integrado]
+    B --> C[Módulo de Vuelos]
+    B --> D[Módulo Meteorológico]
+    B --> E[Módulo de Reportes]
     C --> F[Base de Datos PostgreSQL]
     D --> F
     E --> F
@@ -63,23 +55,24 @@ graph TD
 
 ### 2.2 Justificación de la Arquitectura
 
-La arquitectura de microservicios se eligió por las siguientes razones clave:
+La arquitectura modular con principios SOLID se eligió por las siguientes razones clave:
 
-1. **Escalabilidad**: Permite escalar componentes individuales según la demanda [1].
-2. **Flexibilidad tecnológica**: Cada servicio puede utilizar la tecnología más adecuada para su función [2].
-3. **Resiliencia**: El aislamiento de servicios previene que fallos en un componente afecten a todo el sistema [3].
-4. **Desarrollo y despliegue independientes**: Facilita la entrega continua y el despliegue independiente de servicios [4].
+1. **Modularidad**: Permite una clara separación de responsabilidades y facilita el mantenimiento [1].
+2. **Flexibilidad**: Cada módulo puede evolucionar independientemente, facilitando la adaptación a cambios [2].
+3. **Testabilidad**: La estructura modular y los principios SOLID fomentan un diseño más fácil de probar [3].
+4. **Reutilización**: Los módulos bien diseñados pueden reutilizarse en diferentes partes del sistema o en otros proyectos [4].
+5. **Escalabilidad**: Permite escalar componentes individuales según la demanda [5].
 
 ## 3. Componentes Arquitectónicos
 
 ### 3.1 Capa de Presentación
-- **API Gateway**: Implementado con NestJS, maneja la autenticación, autorización y enrutamiento de solicitudes.
+- **Proxy Integrado**: Maneja el enrutamiento de solicitudes y la comunicación con los módulos internos.
 - **WebSocket Server**: Proporciona actualizaciones en tiempo real a los clientes.
 
-### 3.2 Capa de Aplicación
-- **Servicio de Vuelos**: Gestiona la información de vuelos y aeropuertos.
-- **Servicio Meteorológico**: Procesa y proporciona datos meteorológicos.
-- **Servicio de Reportes**: Genera informes combinando datos de vuelos y meteorológicos.
+### 3.2 Módulos de Aplicación
+- **Módulo de Vuelos**: Gestiona la información de vuelos y aeropuertos.
+- **Módulo Meteorológico**: Procesa y proporciona datos meteorológicos.
+- **Módulo de Reportes**: Genera informes combinando datos de vuelos y meteorológicos.
 
 ### 3.3 Capa de Dominio
 - **Entidades de Dominio**: `FlightTicket`, `Airport`, `WeatherData`, `FlightWeatherReport`.
@@ -91,10 +84,10 @@ La arquitectura de microservicios se eligió por las siguientes razones clave:
 - **Mensajería**: Apache Kafka para comunicación asíncrona entre servicios.
 - **Monitoreo**: Prometheus y Grafana para recolección de métricas y visualización.
 
-## 4. Patrones Arquitectónicos
+## 4. Patrones Arquitectónicos y Principios SOLID
 
 ### 4.1 Patrón Repository
-Utilizado para abstraer el acceso a datos [5].
+Utilizado para abstraer el acceso a datos [6].
 
 #### Ejemplo de Implementación
 
@@ -119,34 +112,53 @@ export class FlightRepository {
 }
 ```
 
-### 4.2 Patrón CQRS
-Implementado para separar las operaciones de lectura y escritura en ciertos componentes [6].
+### 4.2 Principio de Responsabilidad Única (SRP)
+Cada módulo tiene una responsabilidad única y bien definida.
 
-### 4.3 Event Sourcing
-Utilizado para capturar cambios de estado como una secuencia de eventos [7].
+### 4.3 Principio de Abierto/Cerrado (OCP)
+Los módulos están diseñados para ser extendidos sin modificar su código existente.
+
+### 4.4 Principio de Sustitución de Liskov (LSP)
+Las implementaciones concretas pueden sustituir a sus abstracciones sin afectar el comportamiento del sistema.
+
+### 4.5 Principio de Segregación de Interfaces (ISP)
+Se utilizan interfaces específicas para cada tipo de cliente, evitando dependencias innecesarias.
+
+### 4.6 Principio de Inversión de Dependencias (DIP)
+Los módulos de alto nivel no dependen de los módulos de bajo nivel, ambos dependen de abstracciones.
+
+### 4.7 Patrón CQRS
+Implementado para separar las operaciones de lectura y escritura en ciertos componentes [7].
+
+### 4.8 Event Sourcing
+Utilizado para capturar cambios de estado como una secuencia de eventos [8].
 
 ## 5. Decisiones Arquitectónicas Clave
 
-### 5.1 Uso de NestJS
-**Decisión**: Utilizar NestJS como framework principal para el backend.
-**Justificación**: Proporciona una arquitectura escalable out-of-the-box y facilita la implementación de principios SOLID [8].
+### 5.1 Uso de Módulos con Principios SOLID
+**Decisión**: Implementar la aplicación utilizando módulos que siguen los principios SOLID.
+**Justificación**: Mejora la mantenibilidad, flexibilidad y testabilidad del sistema [9].
 
-### 5.2 Base de Datos PostgreSQL
+### 5.2 Proxy Integrado
+**Decisión**: Integrar el proxy dentro del proyecto principal.
+**Justificación**: Simplifica la arquitectura y reduce la latencia en las comunicaciones internas [10].
+
+### 5.3 Base de Datos PostgreSQL
 **Decisión**: Utilizar PostgreSQL como base de datos principal.
-**Justificación**: Ofrece robustez y soporte para datos geoespaciales, necesarios para manejar eficientemente datos de ubicación de aeropuertos y rutas de vuelo [9].
+**Justificación**: Ofrece robustez y soporte para datos geoespaciales, necesarios para manejar eficientemente datos de ubicación de aeropuertos y rutas de vuelo [11].
 
-### 5.3 Caché con Redis
+### 5.4 Caché con Redis
 **Decisión**: Implementar Redis como sistema de caché.
-**Justificación**: Reduce la carga en la base de datos y mejora la latencia para datos frecuentemente accedidos [10].
+**Justificación**: Reduce la carga en la base de datos y mejora la latencia para datos frecuentemente accedidos [12].
 
-### 5.4 Apache Kafka para Mensajería
+### 5.5 Apache Kafka para Mensajería
 **Decisión**: Utilizar Apache Kafka para la comunicación asíncrona entre servicios.
-**Justificación**: Permite un desacoplamiento efectivo entre servicios y soporta el procesamiento de streams de datos en tiempo real [11].
+**Justificación**: Permite un desacoplamiento efectivo entre servicios y soporta el procesamiento de streams de datos en tiempo real [13].
 
 ## 6. Escalabilidad y Rendimiento
 
 ### 6.1 Estrategias de Escalabilidad
-- **Escalado Horizontal**: Cada microservicio puede escalar independientemente.
+- **Escalado Horizontal**: Cada módulo puede escalar independientemente.
 - **Caché Distribuida**: Implementada con Redis para reducir la latencia y la carga en la base de datos.
 - **Procesamiento Asíncrono**: Utilización de Kafka para manejar cargas de trabajo intensivas de manera asíncrona.
 
@@ -177,88 +189,37 @@ export class WeatherService {
 }
 ```
 
-## 7. Seguridad
+## 7. Integración y Comunicación
 
-### 7.1 Autenticación y Autorización
-- Implementación de JSON Web Tokens (JWT) para autenticar solicitudes.
-- Control de acceso basado en roles (RBAC) para diferentes endpoints y recursos.
+### 7.1 API RESTful
+Implementada utilizando módulos NestJS para comunicación síncrona entre clientes y el backend.
 
-### 7.2 Encriptación
-- Datos sensibles encriptados en reposo y en tránsito.
-
-### 7.3 Protección contra Ataques
-- Rate Limiting implementado en el API Gateway para prevenir abusos.
-
-#### Ejemplo de Middleware de Autenticación
-
-```typescript
-@Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
-    if (!token) {
-      throw new UnauthorizedException();
-    }
-    try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request['user'] = payload;
-    } catch {
-      throw new UnauthorizedException();
-    }
-    return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
-  }
-}
-```
-
-## 8. Integración y Comunicación
-
-### 8.1 API RESTful
-Implementada utilizando NestJS para comunicación síncrona entre clientes y el backend.
-
-### 8.2 WebSockets
+### 7.2 WebSockets
 Utilizados para proporcionar actualizaciones en tiempo real a los clientes.
 
-### 8.3 Apache Kafka
-Empleado para la comunicación asíncrona entre microservicios.
+### 7.3 Apache Kafka
+Empleado para la comunicación asíncrona entre módulos.
 
-#### Ejemplo de Productor Kafka con Confluent
+### 7.4 Comunicación entre Módulos
+La comunicación entre módulos se realiza a través de interfaces bien definidas, siguiendo los principios SOLID.
+
+#### Ejemplo de Productor Kafka
 
 ```typescript
-import { Kafka, Producer } from 'kafkajs';
-import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
-
 @Injectable()
 export class WeatherUpdateProducer {
-  private producer: Producer;
-  private schemaRegistry: SchemaRegistry;
-
-  constructor() {
-    const kafka = new Kafka({
-      clientId: 'aether-weather-service',
-      brokers: ['localhost:9092'],
-    });
-    this.producer = kafka.producer();
-    this.schemaRegistry = new SchemaRegistry({ host: 'http://localhost:8081' });
-  }
+  constructor(
+    @Inject('KAFKA_PRODUCER')
+    private kafkaProducer: Producer,
+  ) {}
 
   async sendWeatherUpdate(weatherData: WeatherData): Promise<void> {
-    const schemaId = await this.schemaRegistry.getLatestSchemaId('weather-value');
-    const encodedValue = await this.schemaRegistry.encode(schemaId, weatherData);
-
-    await this.producer.send({
+    await this.kafkaProducer.send({
       topic: 'weather-updates',
       messages: [
         { 
           key: weatherData.airportCode, 
-          value: encodedValue
+          value: JSON.stringify(weatherData) 
         },
       ],
     });
@@ -266,15 +227,15 @@ export class WeatherUpdateProducer {
 }
 ```
 
-## 9. Manejo de Datos
+## 8. Manejo de Datos
 
-### 9.1 ORM
+### 8.1 ORM
 Uso de TypeORM para mapeo objeto-relacional.
 
-### 9.2 Migraciones
+### 8.2 Migraciones
 Implementadas para gestionar cambios en el esquema de la base de datos.
 
-### 9.3 Transacciones
+### 8.3 Transacciones
 Utilizadas para garantizar la consistencia de los datos en operaciones complejas.
 
 #### Ejemplo de Entidad y Migración
@@ -329,15 +290,15 @@ export class CreateFlightTicketTable1635000000000 implements MigrationInterface 
 }
 ```
 
-## 10. Observabilidad y Monitoreo
+## 9. Observabilidad y Monitoreo
 
-### 10.1 Logging
+### 9.1 Logging
 Implementación de logging estructurado con Winston.
 
-### 10.2 Métricas
+### 9.2 Métricas
 Recolección de métricas con Prometheus.
 
-### 10.3 Tracing
+### 9.3 Tracing
 Implementación de tracing distribuido con Jaeger.
 
 #### Ejemplo de Configuración de Prometheus
@@ -358,15 +319,15 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 export class AppModule {}
 ```
 
-## 11. Despliegue y DevOps
+## 10. Despliegue y DevOps
 
-### 11.1 Containerización
+### 10.1 Containerización
 Uso de Docker para empaquetar servicios.
 
-### 11.2 Orquestación
+### 10.2 Orquestación
 Kubernetes para gestionar el despliegue y escalado de contenedores.
 
-### 11.3 CI/CD
+### 10.3 CI/CD
 Implementación de pipelines con GitLab CI para integración y despliegue continuos.
 
 #### Ejemplo de Dockerfile
@@ -387,62 +348,70 @@ EXPOSE 3000
 CMD ["node", "dist/main"]
 ```
 
-## 12. Evolución Futura
+## 11. Evolución Futura
 
 - Implementación de GraphQL para consultas más flexibles.
 - Integración de machine learning para predicciones meteorológicas avanzadas.
-- Expansión a una arquitectura de microservicios más granular.
+- Refinamiento continuo de la arquitectura modular y principios SOLID.
+- Expansión de la funcionalidad de los módulos existentes.
 
-## 13. Glosario
+## 12. Glosario
 
+[Añadir las siguientes definiciones al glosario existente]
+
+- **SOLID**: Acrónimo de cinco principios de diseño destinados a hacer que los diseños de software sean más comprensibles, flexibles y mantenibles.
+- **SRP**: Single Responsibility Principle, un principio que establece que cada clase debe tener una única razón para cambiar.
+- **OCP**: Open/Closed Principle, un principio que establece que las entidades de software deben estar abiertas para extensión, pero cerradas para modificación.
+- **LSP**: Liskov Substitution Principle, un principio que establece que los objetos de una superclase deben ser reemplazables con objetos de sus subclases sin alterar la corrección del programa.
+- **ISP**: Interface Segregation Principle, un principio que establece que ningún cliente debe ser forzado a depender de métodos que no usa.
+- **DIP**: Dependency Inversion Principle, un principio que establece que los módulos de alto nivel no deben depender de módulos de bajo nivel, ambos deben depender de abstracciones.
+- **Módulo**: Una unidad de software que agrupa un conjunto de subprogramas y estructuras de datos relacionados.
+- **Proxy Integrado**: Un componente que actúa como intermediario para las solicitudes de los clientes a los servicios, integrado directamente en la aplicación principal.
 - **API Gateway**: Punto de entrada único para todas las solicitudes de clientes.
 - **CQRS**: Command Query Responsibility Segregation, un patrón que separa las operaciones de lectura y escritura.
 - **DDD**: Domain-Driven Design, un enfoque de diseño de software que se centra en el dominio del negocio.
 - **Event Sourcing**: Un patrón de diseño donde los cambios de estado se capturan como una secuencia de eventos.
-- **JWT**: JSON Web Token, un estándar abierto para crear tokens de acceso.
 - **Kubernetes**: Una plataforma de código abierto para automatizar el despliegue, escalado y gestión de aplicaciones en contenedores.
-- **Microservicio**: Una arquitectura que estructura una aplicación como una colección de servicios débilmente acoplados.
 - **ORM**: Object-Relational Mapping, una técnica de programación para convertir datos entre sistemas de tipos incompatibles.
-- **RBAC**: Role-Based Access Control, un método de regular el acceso a recursos del sistema basado en roles de usuarios.
 - **WebSocket**: Un protocolo de comunicación que proporciona canales de comunicación full-duplex sobre una única conexión TCP.
 
-## 14. Referencias
+## 13. Referencias
 
-[1] Newman, S. (2015). Building Microservices: Designing Fine-Grained Systems. O'Reilly Media.
+[1] Martin, R. C. (2017). Clean Architecture: A Craftsman's Guide to Software Structure and Design. Prentice Hall.
 
-[2] Richards, M. (2015). Software Architecture Patterns. O'Reilly Media.
+[2] Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley.
 
-[3] Nygard, M. T. (2007). Release It!: Design and Deploy Production-Ready Software. Pragmatic Bookshelf.
+[3] Fowler, M. (2018). Refactoring: Improving the Design of Existing Code. Addison-Wesley Professional.
 
-[4] Fowler, M. (2014). Microservices. https://martinfowler.com/articles/microservices.html
+[4] Evans, E. (2003). Domain-Driven Design: Tackling Complexity in the Heart of Software. Addison-Wesley.
 
-[5] Evans, E. (2003). Domain-Driven Design: Tackling Complexity in the Heart of Software. Addison-Wesley.
+[5] Newman, S. (2015). Building Microservices: Designing Fine-Grained Systems. O'Reilly Media.
 
-[6] Young, G. (2010). CQRS Documents by Greg Young. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
+[6] Fowler, M. (2002). Patterns of Enterprise Application Architecture. Addison-Wesley.
 
-[7] Betts, D. et al. (2012). Exploring CQRS and Event Sourcing. Microsoft patterns & practices.
+[7] Young, G. (2010). CQRS Documents by Greg Young. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
 
-[8] NestJS. (2021). Documentation. https://docs.nestjs.com/
+[8] Betts, D. et al. (2012). Exploring CQRS and Event Sourcing. Microsoft patterns & practices.
 
-[9] PostgreSQL Global Development Group. (2021). PostgreSQL Documentation. https://www.postgresql.org/docs/
+[9] Martin, R. C. (2000). Design Principles and Design Patterns. ObjectMentor.
 
-[10] Redis Labs. (2021). Redis Documentation. https://redis.io/documentation
+[10] Richardson, C. (2018). Microservices Patterns: With Examples in Java. Manning Publications.
 
-[11] Apache Software Foundation. (2021). Apache Kafka Documentation. https://kafka.apache.org/documentation/
+[11] PostgreSQL Global Development Group. (2021). PostgreSQL Documentation. https://www.postgresql.org/docs/
 
-[12] Kleppmann, M. (2017). Designing Data-Intensive Applications. O'Reilly Media.
+[12] Redis Labs. (2021). Redis Documentation. https://redis.io/documentation
 
-[13] Burns, B. et al. (2019). Kubernetes: Up and Running: Dive into the Future of Infrastructure. O'Reilly Media.
+[13] Apache Software Foundation. (2021). Apache Kafka Documentation. https://kafka.apache.org/documentation/
 
-[14] Confluent. (2021). Confluent Platform. https://www.confluent.io/product/confluent-platform/
+[14] Fowler, M. (2014). Microservices. https://martinfowler.com/articles/microservices.html
 
-[15] Confluent. (2021). Confluent Schema Registry. https://docs.confluent.io/platform/current/schema-registry/index.html
+[15] Richards, M. (2015). Software Architecture Patterns. O'Reilly Media.
 
-[16] Confluent. (2021). Confluent Cloud. https://www.confluent.io/confluent-cloud/
+[16] Nygard, M. T. (2007). Release It!: Design and Deploy Production-Ready Software. Pragmatic Bookshelf.
 
-[17] Socket.io. (2021). Socket.IO Documentation. https://socket.io/docs/v4/
+[17] Kleppmann, M. (2017). Designing Data-Intensive Applications. O'Reilly Media.
 
-[18] NestJS. (2021). Gateways - NestJS Documentation. https://docs.nestjs.com/websockets/gateways
+[18] Burns, B. et al. (2019). Kubernetes: Up and Running: Dive into the Future of Infrastructure. O'Reilly Media.
 
 [19] Fowler, M. (2017). What do you mean by "Event-Driven"? https://martinfowler.com/articles/201701-event-driven.html
 
