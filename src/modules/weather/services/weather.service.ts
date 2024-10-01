@@ -86,4 +86,11 @@ export class WeatherService {
     await this.cacheWeatherData(`weather:${savedData.airportCode}`, savedData);
     return savedData;
   }
+  async getBulkWeatherForAirports(airportCodes: string[]): Promise<Record<string, any>> {
+    // Implement bulk weather fetching logic here
+    // This is a placeholder implementation
+    const weatherPromises = airportCodes.map(code => this.getWeatherForAirport(code));
+    const weatherResults = await Promise.all(weatherPromises);
+    return Object.fromEntries(airportCodes.map((code, index) => [code, weatherResults[index]]));
+  }
 }

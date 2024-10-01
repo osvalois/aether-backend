@@ -1,6 +1,6 @@
-import { IsString, IsDate, IsObject, ValidateNested } from 'class-validator';
+// flight-weather-report.dto.ts
+import { IsString, IsDate, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
-import { WeatherDataDto } from '../../weather/dto/weather-data.dto';
 
 export class FlightWeatherReportDto {
   @IsString()
@@ -14,17 +14,15 @@ export class FlightWeatherReportDto {
   createdAt: Date;
 
   @IsObject()
-  @ValidateNested()
-  @Type(() => WeatherDataDto)
-  originWeather: WeatherDataDto;
+  originWeather: object;
 
   @IsObject()
-  @ValidateNested()
-  @Type(() => WeatherDataDto)
-  destinationWeather: WeatherDataDto;
+  destinationWeather: object;
+
+  @IsObject()
+  reportData: object;
 
   constructor(partial: Partial<FlightWeatherReportDto>) {
     Object.assign(this, partial);
   }
 }
-
