@@ -16,6 +16,8 @@ ENV NODE_ENV="production"
 ARG PNPM_VERSION=9.8.0
 RUN npm install -g pnpm@$PNPM_VERSION
 
+# Install SSL certificates
+RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
@@ -33,7 +35,6 @@ COPY . .
 
 # Build application
 RUN pnpm run build
-
 
 # Final stage for app image
 FROM base
