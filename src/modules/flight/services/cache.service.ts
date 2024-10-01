@@ -13,7 +13,6 @@ export class CacheService {
 
     constructor(private readonly redisService: RedisService) {}
 
-    // Flight Ticket Cache Operations
     async getFlightTicket(id: string): Promise<FlightTicketDto | null> {
         const cachedTicket = await this.redisService.get(`${this.FLIGHT_TICKET_PREFIX}${id}`);
         return cachedTicket ? JSON.parse(cachedTicket) : null;
@@ -27,7 +26,6 @@ export class CacheService {
         await this.redisService.del(`${this.FLIGHT_TICKET_PREFIX}${id}`);
     }
 
-    // Airport Cache Operations
     async getAirport(iataCode: string): Promise<AirportDto | null> {
         const cachedAirport = await this.redisService.get(`${this.AIRPORT_PREFIX}${iataCode}`);
         return cachedAirport ? JSON.parse(cachedAirport) : null;
@@ -41,7 +39,6 @@ export class CacheService {
         await this.redisService.del(`${this.AIRPORT_PREFIX}${iataCode}`);
     }
 
-    // Backlog Operations
     async setBackloggedFlightTicket(id: string, ticket: FlightTicketDto): Promise<void> {
         await this.redisService.set(`${this.BACKLOG_PREFIX}${id}`, JSON.stringify(ticket));
     }
@@ -64,7 +61,6 @@ export class CacheService {
         await this.redisService.del(`${this.BACKLOG_PREFIX}${id}`);
     }
 
-    // All Tickets Cache Operations
     async getAllTicketsCache(page: number, limit: number): Promise<string | null> {
         return await this.redisService.get(`${this.ALL_TICKETS_PREFIX}${page}:${limit}`);
     }
@@ -73,7 +69,6 @@ export class CacheService {
         await this.redisService.set(`${this.ALL_TICKETS_PREFIX}${page}:${limit}`, data, ttl);
     }
 
-    // Generic Cache Operations
     async get(key: string): Promise<string | null> {
         return await this.redisService.get(key);
     }
@@ -86,7 +81,6 @@ export class CacheService {
         await this.redisService.del(key);
     }
 
-    // Cache Cleanup
     async cleanupOldEntries(): Promise<void> {
         this.logger.log('Starting cache cleanup');
 
