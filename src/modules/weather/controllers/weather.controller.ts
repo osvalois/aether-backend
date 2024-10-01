@@ -17,6 +17,4 @@ export class WeatherController {
     const weatherData = await this.weatherService.getWeatherForAirport(iataCode);
     return new WeatherDataDto(weatherData);
   }
-
-  // Add more endpoints as needed
 }
