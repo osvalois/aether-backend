@@ -33,8 +33,6 @@
 
 El Sistema de Información Meteorológica para Vuelos Aether es una solución de vanguardia diseñada para proporcionar datos meteorológicos precisos y en tiempo real para la industria de la aviación. Utilizando tecnologías de punta como NestJS, Apache Kafka, Redis, y servicios en la nube, Aether ofrece una plataforma robusta, escalable y altamente disponible para la gestión de información crítica de vuelos y condiciones meteorológicas.
 
-Este documento proporciona una visión detallada de la arquitectura, componentes y decisiones técnicas que forman la base del sistema Aether, asegurando que cumpla con los más altos estándares de la industria y las mejores prácticas de ingeniería de software.
-
 ## 2. Visión General del Sistema
 
 Aether es una aplicación backend modular que integra datos de vuelos con información meteorológica en tiempo real. Sus características principales incluyen:
