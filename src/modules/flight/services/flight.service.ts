@@ -284,7 +284,7 @@ export class FlightService {
         return result;
     }
 
-    @Cron(CronExpression.EVERY_5_MINUTES)
+    @Cron(CronExpression.EVERY_10_MINUTES)
     async processBackloggedData() {
         const backloggedTickets = await this.cacheService.getBackloggedFlightTickets();
         

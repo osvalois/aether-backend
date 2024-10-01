@@ -47,7 +47,7 @@ export class WeatherService {
     const savedWeatherData = await this.saveWeatherData(weatherData);
 
     // Publish to Kafka for other services to consume
-    await this.weatherDataProducer.publishWeatherData(savedWeatherData);
+    //await this.weatherDataProducer.publishWeatherData(savedWeatherData);
 
     return savedWeatherData;
   }
@@ -69,7 +69,18 @@ export class WeatherService {
 
     return savedData;
   }
+  async updateWeatherForAllAirports(airportCodes: string[]): Promise<void> {
+    const weatherUpdates = await Promise.all(
+      airportCodes.map(async (code) => {
+        const weatherData = await this.weatherApiService.fetchWeatherData(code);
+        const savedData = await this.updateWeatherData(weatherData);
+        await this.weatherDataProducer.publishWeatherData(savedData);
+        return savedData;
+      })
+    );
 
+    this.logger.log(`Updated weather data for ${weatherUpdates.length} airports`);
+  }
   private async cacheWeatherData(key: string, data: WeatherData): Promise<void> {
     await this.redisService.set(key, JSON.stringify(data), this.CACHE_TTL);
   }
